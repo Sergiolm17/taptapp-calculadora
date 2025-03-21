@@ -1,11 +1,155 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Nav from '../components/Nav.astro';
 ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Costos</title>
+</head>
+<body class="bg-gray-100 m-0">
+  <Nav />
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-3xl text-center text-gray-800 mb-6">Calculadora de Costos</h1>
+    
+    <button 
+      id="btnConfig" 
+      onclick="toggleConfig()"
+      class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+    >
+      Configurar Variables
+    </button>
+    
+    <div class="hidden bg-gray-100 p-4 rounded-md mt-6" id="configuracion">
+      <h2 class="text-2xl text-center text-gray-800 mb-4">Configuración de Variables</h2>
+      
+      <label class="block mt-4 text-gray-700">
+        Costo de impresión A4 (S/.)
+        <input type="number" id="costoImpresionA4" placeholder="1.0" step="0.01" min="0" value="1.0"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </label>
+      
+      <label class="block mt-4 text-gray-700">
+        Costo de corte (S/.)
+        <input type="number" id="costoCorte" placeholder="1.0" step="0.01" min="0" value="1.0"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </label>
+      
+      <label class="block mt-4 text-gray-700">
+        Costo del papel A4 (S/.)
+        <input type="number" id="costoPapelA4" placeholder="0.3" step="0.01" min="0" value="0.3"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </label>
+      
+      <label class="block mt-4 text-gray-700">
+        Margen de impresión (mm)
+        <input type="number" id="margen" placeholder="4" step="0.1" min="0" value="4"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </label>
+    </div>
+    
+    <label class="block mt-4 text-gray-700">
+      Ancho de la pieza (cm):
+      <input type="number" id="ancho" placeholder="Ej. 5" step="0.01" min="0"
+        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </label>
+    
+    <label class="block mt-4 text-gray-700">
+      Largo de la pieza (cm):
+      <input type="number" id="largo" placeholder="Ej. 10" step="0.01" min="0"
+        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </label>
+    
+    <label class="block mt-4 text-gray-700">
+      Cantidad requerida:
+      <input type="number" id="cantidad" placeholder="Ej. 100" step="1" min="1"
+        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </label>
+    
+    <button 
+      onclick="calcularCostos()"
+      class="w-full mt-6 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+    >
+      Calcular
+    </button>
+    
+    <div class="mt-6 bg-gray-100 p-4 rounded-md" id="resultados"></div>
+  </div>
 
-<Layout>
-	<Welcome />
-</Layout>
+  <script is:inline>
+    function toggleConfig() {
+      const configDiv = document.getElementById("configuracion");
+      if (configDiv.style.display === "none" || configDiv.style.display === "") {
+        configDiv.style.display = "block";
+      } else {
+        configDiv.style.display = "none";
+      }
+    }
+
+    function calcularCostos() {
+      // Variables de configuración
+      const costoImpresionA4 = parseFloat(document.getElementById("costoImpresionA4").value) || 1.0;
+      const costoCorte = parseFloat(document.getElementById("costoCorte").value) || 1.0;
+      const costoPapelA4 = parseFloat(document.getElementById("costoPapelA4").value) || 0.3;
+      const margenMM = parseFloat(document.getElementById("margen").value) || 4;
+      // Convertir margen de mm a cm
+      const margen = margenMM / 10; 
+
+      // Costo total de A4
+      const costoTotalA4 = costoImpresionA4 + costoCorte + costoPapelA4;
+
+      // Dimensiones A4 en cm y cálculo del área imprimible
+      const anchoA4 = 21; // cm
+      const largoA4 = 29.7; // cm
+      const areaImprimibleAncho = anchoA4 - 2 * margen;
+      const areaImprimibleLargo = largoA4 - 2 * margen;
+      const areaA4 = areaImprimibleAncho * areaImprimibleLargo;
+      
+      // Costo por cm²
+      const costoPorCm2 = costoTotalA4 / areaA4;
+
+      // Datos ingresados para la pieza
+      const anchoPieza = parseFloat(document.getElementById("ancho").value);
+      const largoPieza = parseFloat(document.getElementById("largo").value);
+      const cantidad = parseInt(document.getElementById("cantidad").value);
+
+      // Validación de datos
+      if(isNaN(anchoPieza) || isNaN(largoPieza) || isNaN(cantidad) || anchoPieza <= 0 || largoPieza <= 0 || cantidad <= 0) {
+        alert("Por favor ingrese valores válidos y mayores a 0.");
+        return;
+      }
+
+      // Área de la pieza
+      const areaPieza = anchoPieza * largoPieza;
+
+      // Costo de una pieza y costo total para la cantidad solicitada
+      const costoPieza = areaPieza * costoPorCm2;
+      const costoTotal = costoPieza * cantidad;
+
+      // Cálculo de cuántas piezas entran en un A4 (se evalúan dos orientaciones)
+      const piezasOrientacion1 = Math.floor(areaImprimibleAncho / anchoPieza) * Math.floor(areaImprimibleLargo / largoPieza);
+      const piezasOrientacion2 = Math.floor(areaImprimibleAncho / largoPieza) * Math.floor(areaImprimibleLargo / anchoPieza);
+      const piezasPorA4 = Math.max(piezasOrientacion1, piezasOrientacion2);
+
+      // Cálculo de hojas A4 requeridas
+      let hojasRequeridas = piezasPorA4 > 0 ? Math.ceil(cantidad / piezasPorA4) : "No cabe ninguna pieza en A4";
+
+      // Mostrar resultados
+      const resultadosDiv = document.getElementById("resultados");
+      resultadosDiv.innerHTML = `
+        <p><strong>Área imprimible de A4:</strong> ${areaA4.toFixed(2)} cm²</p>
+        <p><strong>Costo total de A4:</strong> S/.${costoTotalA4.toFixed(2)}</p>
+        <p><strong>Costo por cm²:</strong> S/.${costoPorCm2.toFixed(5)}</p>
+        <hr>
+        <p><strong>Área de la pieza:</strong> ${areaPieza.toFixed(2)} cm²</p>
+        <p><strong>Costo de una pieza:</strong> S/.${costoPieza.toFixed(2)}</p>
+        <p><strong>Costo total para ${cantidad} pieza(s):</strong> S/.${costoTotal.toFixed(2)}</p>
+        <hr>
+        <p><strong>Piezas que caben en un A4:</strong> ${piezasPorA4}</p>
+        <p><strong>Hojas A4 requeridas:</strong> ${hojasRequeridas}</p>
+      `;
+    }
+  </script>
+</body>
+</html>

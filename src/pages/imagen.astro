@@ -1,0 +1,149 @@
+---
+import Nav from '../components/Nav.astro';
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Costos de Impresión</title>
+</head>
+<body class="bg-gray-100 m-0">
+    <Nav />
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <h1 class="text-3xl text-gray-800 mb-6 text-center">Calculadora de Costos de Impresión</h1>
+            
+            <div class="text-center my-8">
+                <input 
+                    type="file" 
+                    id="imageInput" 
+                    accept="image/jpeg"
+                    class="bg-blue-500 text-white px-6 py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
+                >
+                <div id="loading" class="hidden text-gray-600 mt-4">Procesando imagen...</div>
+            </div>
+
+            <img 
+                id="preview" 
+                alt="Vista previa de la imagen a imprimir"
+                class="max-w-full h-auto my-6 border-2 border-gray-200 rounded-lg p-2 bg-white"
+            >
+            
+            <div id="results" class="bg-gray-50 p-6 rounded-lg mt-8">
+                <h2 class="text-2xl text-gray-800 mb-6">Resultados del análisis</h2>
+                <div id="coverageResults" class="grid grid-cols-4 gap-4 my-5"></div>
+                <div id="costResult" class="text-2xl text-green-600 font-bold text-center my-5"></div>
+                <div class="text-sm text-gray-500 mt-5">
+                    * Cálculo basado en consumo de 0.05g por color al 20% de cobertura y costo de S/0.45 por gramo de tóner
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script is:inline>
+        const TONER_COST_PER_GRAM = 0.45;
+        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.05;
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                
+                img.onload = function() {
+                    document.getElementById('preview').src = img.src;
+                    
+                    // Procesar a tamaño completo
+                    const coverage = calculateCoverage(img);
+                    const cost = calculateCost(coverage);
+                    
+                    showResults(coverage, cost);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function calculateCoverage(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Procesar a tamaño original
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            let cTotal = 0, mTotal = 0, yTotal = 0, kTotal = 0;
+            const pixelCount = canvas.width * canvas.height;
+
+            for(let i = 0; i < data.length; i += 4) {
+                const r = data[i]/255;
+                const g = data[i+1]/255;
+                const b = data[i+2]/255;
+
+                // Conversión RGB a CMYK
+                const k = 1 - Math.max(r, g, b);
+                const c = k === 1 ? 0 : (1 - r - k)/(1 - k);
+                const m = k === 1 ? 0 : (1 - g - k)/(1 - k);
+                const y = k === 1 ? 0 : (1 - b - k)/(1 - k);
+
+                cTotal += c;
+                mTotal += m;
+                yTotal += y;
+                kTotal += k;
+            }
+
+            return {
+                cyan: (cTotal/pixelCount) * 100,
+                magenta: (mTotal/pixelCount) * 100,
+                yellow: (yTotal/pixelCount) * 100,
+                black: (kTotal/pixelCount) * 100
+            };
+        }
+
+        function calculateCost(coverage) {
+            const costPerColor = (percentage) => 
+                (percentage/20) * GRAMS_PER_PAGE_PER_20_PERCENT * TONER_COST_PER_GRAM;
+            
+            return {
+                cyan: costPerColor(coverage.cyan),
+                magenta: costPerColor(coverage.magenta),
+                yellow: costPerColor(coverage.yellow),
+                black: costPerColor(coverage.black),
+                total: Object.values(coverage).reduce((acc, val) => acc + costPerColor(val), 0)
+            };
+        }
+
+        function showResults(coverage, cost) {
+            const coverageResults = `
+                <div class="bg-cyan-500 text-white p-4 rounded-md text-center font-bold">
+                    Cian: ${coverage.cyan.toFixed(1)}%
+                </div>
+                <div class="bg-fuchsia-500 text-white p-4 rounded-md text-center font-bold">
+                    Magenta: ${coverage.magenta.toFixed(1)}%
+                </div>
+                <div class="bg-yellow-400 text-white p-4 rounded-md text-center font-bold">
+                    Amarillo: ${coverage.yellow.toFixed(1)}%
+                </div>
+                <div class="bg-black text-white p-4 rounded-md text-center font-bold">
+                    Negro: ${coverage.black.toFixed(1)}%
+                </div>
+            `;
+            
+            document.getElementById('coverageResults').innerHTML = coverageResults;
+            document.getElementById('costResult').innerHTML = `
+                Costo total por hoja: S/${cost.total.toFixed(2)}
+            `;
+        }
+    </script>
+</body>
+</html>
