@@ -12,7 +12,7 @@ import "../styles/global.css";
 </head>
 <body class="bg-gray-100 m-0">
     <Nav />
-    <div class="max-w-3xl mx-auto px-4 py-6">
+    <div class="max-w-3xl mx-auto px-4 py-4 sm:py-6">
         <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
             <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Calculadora de Costos de Impresión PDF</h1>
             
@@ -30,21 +30,23 @@ import "../styles/global.css";
                 <div id="loading" class="hidden text-gray-600 mt-4">Procesando PDF...</div>
             </div>
 
-            <div id="pdfPreview" class="w-full my-4 sm:my-6 overflow-auto">
-                <canvas id="pdfCanvas" class="border-2 border-gray-200 rounded-lg p-2 bg-white max-w-full h-auto mx-auto"></canvas>
-            </div>
-            
-            <div class="flex justify-between items-center mb-4 gap-2">
-                <button id="prevPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Anterior</button>
-                <div id="pageInfo" class="text-gray-700 text-sm sm:text-base">Página 0 de 0</div>
-                <button id="nextPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Siguiente</button>
+            <div id="pdfContainer" class="flex flex-col items-center">
+                <div id="pdfPreview" class="w-full my-4 sm:my-6 flex justify-center">
+                    <canvas id="pdfCanvas" class="border-2 border-gray-200 rounded-lg p-2 bg-white"></canvas>
+                </div>
+                
+                <div class="flex justify-between items-center mb-4 gap-2 w-full max-w-md">
+                    <button id="prevPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Anterior</button>
+                    <div id="pageInfo" class="text-gray-700 text-sm sm:text-base">Página 0 de 0</div>
+                    <button id="nextPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Siguiente</button>
+                </div>
             </div>
 
             <div id="results" class="bg-gray-50 p-3 sm:p-6 rounded-lg mt-4 sm:mt-8 hidden">
                 <h2 class="text-xl sm:text-2xl text-gray-800 mb-4 sm:mb-6">Resultados del análisis</h2>
                 <p id="pagesInfo" class="mb-3 sm:mb-4 text-sm sm:text-base">Número de páginas: <span id="pageCount">0</span></p>
                 
-                <div class="overflow-auto">
+                <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg overflow-hidden text-sm sm:text-base">
                         <thead class="bg-gray-100">
                             <tr>
@@ -103,6 +105,9 @@ import "../styles/global.css";
             
             // Mostrar nombre del archivo
             document.getElementById('fileName').textContent = file.name;
+            
+            // Mostrar contenedor del PDF
+            document.getElementById('pdfContainer').style.display = 'flex';
             
             const reader = new FileReader();
             
@@ -169,7 +174,8 @@ import "../styles/global.css";
         function calculateScaleForViewport() {
             // Obtener el ancho disponible para el canvas (ancho del contenedor menos padding)
             const containerWidth = document.getElementById('pdfPreview').clientWidth - 20;
-            return containerWidth < 768 ? 1.0 : 1.5; // Escala más pequeña en dispositivos móviles
+            const scale = containerWidth < 768 ? 0.9 : 1.2;
+            return Math.min(scale, containerWidth / 650); // Limitar escala para que quepa en el contenedor
         }
 
         function renderPage(num) {
@@ -178,6 +184,8 @@ import "../styles/global.css";
             pdfDoc.getPage(num).then(function(page) {
                 currentScale = calculateScaleForViewport();
                 const viewport = page.getViewport({ scale: currentScale });
+                
+                // Ajustar dimensiones del canvas
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
                 
@@ -329,6 +337,14 @@ import "../styles/global.css";
                 Costo total del documento: S/${totalCost.toFixed(2)}
             `;
         }
+
+        // Inicialización y configuración
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ocultar inicialmente el contenedor del PDF hasta que se seleccione un archivo
+            if (!pdfDoc) {
+                document.getElementById('pdfContainer').style.display = 'none';
+            }
+        });
 
         // Escuchar cambios de tamaño de la ventana para ajustar el canvas
         window.addEventListener('resize', resizeCanvas);
