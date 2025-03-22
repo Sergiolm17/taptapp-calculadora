@@ -46,6 +46,9 @@ import "../styles/global.css";
                 <h2 class="text-xl sm:text-2xl text-gray-800 mb-4 sm:mb-6">Resultados del análisis</h2>
                 <p id="pagesInfo" class="mb-3 sm:mb-4 text-sm sm:text-base">Número de páginas: <span id="pageCount">0</span></p>
                 
+                <!-- Resumen visual de costos por tinta -->
+                <div id="inkCostSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6"></div>
+                
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white rounded-lg overflow-hidden text-sm sm:text-base">
                         <thead class="bg-gray-100">
@@ -89,6 +92,12 @@ import "../styles/global.css";
         let ctx = canvas.getContext('2d');
         let pageResults = [];
         let currentScale = 1.5;
+        let totalInkCosts = {
+            cyan: 0,
+            magenta: 0,
+            yellow: 0,
+            black: 0
+        };
 
         // Ajustar tamaño del canvas cuando cambia el tamaño de la ventana
         function resizeCanvas() {
@@ -114,6 +123,13 @@ import "../styles/global.css";
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             pageResults = [];
+            // Reiniciar costos de tinta totales
+            totalInkCosts = {
+                cyan: 0,
+                magenta: 0,
+                yellow: 0,
+                black: 0
+            };
 
             reader.onload = function(event) {
                 const typedarray = new Uint8Array(event.target.result);
@@ -161,6 +177,13 @@ import "../styles/global.css";
                     }).promise.then(function() {
                         const coverage = calculateCoverage(tempCanvas);
                         const cost = calculateCost(coverage);
+                        
+                        // Acumular costos de tinta
+                        totalInkCosts.cyan += cost.cyan;
+                        totalInkCosts.magenta += cost.magenta;
+                        totalInkCosts.yellow += cost.yellow;
+                        totalInkCosts.black += cost.black;
+                        
                         pageResults.push({
                             pageNum: i,
                             coverage,
@@ -333,8 +356,33 @@ import "../styles/global.css";
                 totalCost += result.cost.total;
             });
             
+            // Mostrar resumen de costos por tinta
+            showInkCostSummary();
+            
             document.getElementById('totalCostResult').innerHTML = `
                 Costo total del documento: S/${totalCost.toFixed(2)}
+            `;
+        }
+        
+        function showInkCostSummary() {
+            const summaryContainer = document.getElementById('inkCostSummary');
+            summaryContainer.innerHTML = `
+                <div class="bg-cyan-500 text-white p-3 sm:p-4 rounded-md text-center font-bold flex flex-col justify-center">
+                    <div class="text-base sm:text-lg">Cian</div>
+                    <div class="text-lg sm:text-xl">S/${totalInkCosts.cyan.toFixed(2)}</div>
+                </div>
+                <div class="bg-fuchsia-500 text-white p-3 sm:p-4 rounded-md text-center font-bold flex flex-col justify-center">
+                    <div class="text-base sm:text-lg">Magenta</div>
+                    <div class="text-lg sm:text-xl">S/${totalInkCosts.magenta.toFixed(2)}</div>
+                </div>
+                <div class="bg-yellow-400 text-white p-3 sm:p-4 rounded-md text-center font-bold flex flex-col justify-center">
+                    <div class="text-base sm:text-lg">Amarillo</div>
+                    <div class="text-lg sm:text-xl">S/${totalInkCosts.yellow.toFixed(2)}</div>
+                </div>
+                <div class="bg-black text-white p-3 sm:p-4 rounded-md text-center font-bold flex flex-col justify-center">
+                    <div class="text-base sm:text-lg">Negro</div>
+                    <div class="text-lg sm:text-xl">S/${totalInkCosts.black.toFixed(2)}</div>
+                </div>
             `;
         }
 
