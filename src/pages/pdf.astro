@@ -1,0 +1,337 @@
+---
+import Nav from '../components/Nav.astro';
+import "../styles/global.css";
+
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos de Impresión PDF</title>
+</head>
+<body class="bg-gray-100 m-0">
+    <Nav />
+    <div class="max-w-3xl mx-auto px-4 py-6">
+        <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Calculadora de Costos de Impresión PDF</h1>
+            
+            <div class="text-center my-4 sm:my-8">
+                <label for="pdfInput" class="block w-full max-w-xs mx-auto bg-blue-500 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors text-center">
+                    Elegir archivo PDF
+                    <input
+                        type="file" 
+                        id="pdfInput" 
+                        accept="application/pdf"
+                        class="hidden"
+                    >
+                </label>
+                <div id="fileName" class="mt-2 text-sm text-gray-600"></div>
+                <div id="loading" class="hidden text-gray-600 mt-4">Procesando PDF...</div>
+            </div>
+
+            <div id="pdfPreview" class="w-full my-4 sm:my-6 overflow-auto">
+                <canvas id="pdfCanvas" class="border-2 border-gray-200 rounded-lg p-2 bg-white max-w-full h-auto mx-auto"></canvas>
+            </div>
+            
+            <div class="flex justify-between items-center mb-4 gap-2">
+                <button id="prevPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Anterior</button>
+                <div id="pageInfo" class="text-gray-700 text-sm sm:text-base">Página 0 de 0</div>
+                <button id="nextPage" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm sm:text-base">Siguiente</button>
+            </div>
+
+            <div id="results" class="bg-gray-50 p-3 sm:p-6 rounded-lg mt-4 sm:mt-8 hidden">
+                <h2 class="text-xl sm:text-2xl text-gray-800 mb-4 sm:mb-6">Resultados del análisis</h2>
+                <p id="pagesInfo" class="mb-3 sm:mb-4 text-sm sm:text-base">Número de páginas: <span id="pageCount">0</span></p>
+                
+                <div class="overflow-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden text-sm sm:text-base">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Página</th>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Cian %</th>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Magenta %</th>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Amarillo %</th>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Negro %</th>
+                                <th class="py-1 px-2 sm:py-2 sm:px-4 border-b">Costo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pageResultsBody">
+                            <!-- Los resultados por página se mostrarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="totalCostResult" class="text-xl sm:text-2xl text-green-600 font-bold text-center my-3 sm:my-5"></div>
+                <div class="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-5">
+                    * Cálculo basado en consumo de 0.05g por color al 20% de cobertura y costo de S/0.45 por gramo de tóner
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir PDF.js -->
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script is:inline>
+        // Configurar PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        const TONER_COST_PER_GRAM = 0.45;
+        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.05;
+        
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let canvas = document.getElementById('pdfCanvas');
+        let ctx = canvas.getContext('2d');
+        let pageResults = [];
+        let currentScale = 1.5;
+
+        // Ajustar tamaño del canvas cuando cambia el tamaño de la ventana
+        function resizeCanvas() {
+            if (pdfDoc) {
+                // Volver a renderizar la página actual con escala ajustada
+                renderPage(pageNum);
+            }
+        }
+
+        // Manejar la selección de archivo y mostrar el nombre
+        document.getElementById('pdfInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Mostrar nombre del archivo
+            document.getElementById('fileName').textContent = file.name;
+            
+            const reader = new FileReader();
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            pageResults = [];
+
+            reader.onload = function(event) {
+                const typedarray = new Uint8Array(event.target.result);
+                loadPdfDocument(typedarray);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function loadPdfDocument(typedarray) {
+            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                document.getElementById('pageInfo').textContent = `Página ${pageNum} de ${pdfDoc.numPages}`;
+                document.getElementById('pageCount').textContent = pdfDoc.numPages;
+                
+                // Analizar todas las páginas
+                analyzeAllPages().then(() => {
+                    // Mostrar la primera página
+                    renderPage(pageNum);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                    
+                    // Mostrar resultados
+                    showResults();
+                });
+            }).catch(function(error) {
+                console.error('Error loading PDF:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('Error al cargar el PDF. Por favor, intenta con otro archivo.');
+            });
+        }
+
+        async function analyzeAllPages() {
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                await pdfDoc.getPage(i).then(function(page) {
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    
+                    tempCanvas.width = viewport.width;
+                    tempCanvas.height = viewport.height;
+                    
+                    return page.render({
+                        canvasContext: tempCtx,
+                        viewport: viewport
+                    }).promise.then(function() {
+                        const coverage = calculateCoverage(tempCanvas);
+                        const cost = calculateCost(coverage);
+                        pageResults.push({
+                            pageNum: i,
+                            coverage,
+                            cost
+                        });
+                    });
+                });
+            }
+        }
+
+        function calculateScaleForViewport() {
+            // Obtener el ancho disponible para el canvas (ancho del contenedor menos padding)
+            const containerWidth = document.getElementById('pdfPreview').clientWidth - 20;
+            return containerWidth < 768 ? 1.0 : 1.5; // Escala más pequeña en dispositivos móviles
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+            
+            pdfDoc.getPage(num).then(function(page) {
+                currentScale = calculateScaleForViewport();
+                const viewport = page.getViewport({ scale: currentScale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext).promise.then(function() {
+                    pageRendering = false;
+                    
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+                
+                document.getElementById('pageInfo').textContent = `Página ${num} de ${pdfDoc.numPages}`;
+                
+                // Actualizar botones
+                document.getElementById('prevPage').disabled = num <= 1;
+                document.getElementById('nextPage').disabled = num >= pdfDoc.numPages;
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        document.getElementById('prevPage').addEventListener('click', function() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        });
+
+        function calculateCoverage(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            let cTotal = 0, mTotal = 0, yTotal = 0, kTotal = 0;
+            const pixelCount = canvas.width * canvas.height;
+
+            for(let i = 0; i < data.length; i += 4) {
+                const r = data[i]/255;
+                const g = data[i+1]/255;
+                const b = data[i+2]/255;
+                const a = data[i+3]/255;
+
+                // Si el píxel es transparente, no lo contamos
+                if (a < 0.1) continue;
+
+                // Conversión RGB a CMYK
+                const k = 1 - Math.max(r, g, b);
+                const c = k === 1 ? 0 : (1 - r - k)/(1 - k);
+                const m = k === 1 ? 0 : (1 - g - k)/(1 - k);
+                const y = k === 1 ? 0 : (1 - b - k)/(1 - k);
+
+                cTotal += c;
+                mTotal += m;
+                yTotal += y;
+                kTotal += k;
+            }
+
+            return {
+                cyan: (cTotal/pixelCount) * 100,
+                magenta: (mTotal/pixelCount) * 100,
+                yellow: (yTotal/pixelCount) * 100,
+                black: (kTotal/pixelCount) * 100
+            };
+        }
+
+        function calculateCost(coverage) {
+            const costPerColor = (percentage) => 
+                (percentage/20) * GRAMS_PER_PAGE_PER_20_PERCENT * TONER_COST_PER_GRAM;
+            
+            return {
+                cyan: costPerColor(coverage.cyan),
+                magenta: costPerColor(coverage.magenta),
+                yellow: costPerColor(coverage.yellow),
+                black: costPerColor(coverage.black),
+                total: Object.values(coverage).reduce((acc, val) => acc + costPerColor(val), 0)
+            };
+        }
+
+        function showResults() {
+            const tableBody = document.getElementById('pageResultsBody');
+            tableBody.innerHTML = '';
+            
+            let totalCost = 0;
+            
+            pageResults.forEach(result => {
+                const row = document.createElement('tr');
+                
+                // Añadir celdas a la fila
+                const cellClasses = 'py-1 px-2 sm:py-2 sm:px-4 border-b text-center';
+                
+                // Página
+                const pageCell = document.createElement('td');
+                pageCell.className = cellClasses;
+                pageCell.textContent = result.pageNum;
+                row.appendChild(pageCell);
+                
+                // Cian
+                const cyanCell = document.createElement('td');
+                cyanCell.className = cellClasses;
+                cyanCell.textContent = result.coverage.cyan.toFixed(1);
+                row.appendChild(cyanCell);
+                
+                // Magenta
+                const magentaCell = document.createElement('td');
+                magentaCell.className = cellClasses;
+                magentaCell.textContent = result.coverage.magenta.toFixed(1);
+                row.appendChild(magentaCell);
+                
+                // Amarillo
+                const yellowCell = document.createElement('td');
+                yellowCell.className = cellClasses;
+                yellowCell.textContent = result.coverage.yellow.toFixed(1);
+                row.appendChild(yellowCell);
+                
+                // Negro
+                const blackCell = document.createElement('td');
+                blackCell.className = cellClasses;
+                blackCell.textContent = result.coverage.black.toFixed(1);
+                row.appendChild(blackCell);
+                
+                // Costo
+                const costCell = document.createElement('td');
+                costCell.className = cellClasses;
+                costCell.textContent = `S/${result.cost.total.toFixed(2)}`;
+                row.appendChild(costCell);
+                
+                tableBody.appendChild(row);
+                totalCost += result.cost.total;
+            });
+            
+            document.getElementById('totalCostResult').innerHTML = `
+                Costo total del documento: S/${totalCost.toFixed(2)}
+            `;
+        }
+
+        // Escuchar cambios de tamaño de la ventana para ajustar el canvas
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html> 

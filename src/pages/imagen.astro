@@ -7,35 +7,40 @@ import "../styles/global.css";
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Costos de Impresión</title>
 </head>
 <body class="bg-gray-100 m-0">
     <Nav />
-    <div class="max-w-3xl mx-auto">
-        <div class="bg-white p-8 rounded-lg shadow-md">
-            <h1 class="text-3xl text-gray-800 mb-6 text-center">Calculadora de Costos de Impresión</h1>
+    <div class="max-w-3xl mx-auto px-4 py-4 sm:py-6">
+        <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Calculadora de Costos de Impresión</h1>
             
-            <div class="text-center my-8">
-                <input 
-                    type="file" 
-                    id="imageInput" 
-                    accept="image/jpeg"
-                    class="bg-blue-500 text-white px-6 py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
-                >
+            <div class="text-center my-4 sm:my-8">
+                <label for="imageInput" class="block w-full max-w-xs mx-auto bg-blue-500 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors text-center">
+                    Elegir imagen
+                    <input
+                        type="file" 
+                        id="imageInput" 
+                        accept="image/jpeg"
+                        class="hidden"
+                    >
+                </label>
+                <div id="fileName" class="mt-2 text-sm text-gray-600"></div>
                 <div id="loading" class="hidden text-gray-600 mt-4">Procesando imagen...</div>
             </div>
 
             <img 
                 id="preview" 
                 alt="Vista previa de la imagen a imprimir"
-                class="max-w-full h-auto my-6 border-2 border-gray-200 rounded-lg p-2 bg-white"
+                class="max-w-full h-auto my-4 sm:my-6 border-2 border-gray-200 rounded-lg p-2 bg-white mx-auto"
             >
             
-            <div id="results" class="bg-gray-50 p-6 rounded-lg mt-8">
-                <h2 class="text-2xl text-gray-800 mb-6">Resultados del análisis</h2>
-                <div id="coverageResults" class="grid grid-cols-4 gap-4 my-5"></div>
-                <div id="costResult" class="text-2xl text-green-600 font-bold text-center my-5"></div>
-                <div class="text-sm text-gray-500 mt-5">
+            <div id="results" class="bg-gray-50 p-4 sm:p-6 rounded-lg mt-4 sm:mt-8">
+                <h2 class="text-xl sm:text-2xl text-gray-800 mb-4 sm:mb-6">Resultados del análisis</h2>
+                <div id="coverageResults" class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 my-3 sm:my-5"></div>
+                <div id="costResult" class="text-xl sm:text-2xl text-green-600 font-bold text-center my-3 sm:my-5"></div>
+                <div class="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-5">
                     * Cálculo basado en consumo de 0.05g por color al 20% de cobertura y costo de S/0.45 por gramo de tóner
                 </div>
             </div>
@@ -48,6 +53,11 @@ import "../styles/global.css";
 
         document.getElementById('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            if (!file) return;
+            
+            // Mostrar nombre del archivo
+            document.getElementById('fileName').textContent = file.name;
+            
             const reader = new FileReader();
             
             document.getElementById('loading').style.display = 'block';
@@ -127,16 +137,16 @@ import "../styles/global.css";
 
         function showResults(coverage, cost) {
             const coverageResults = `
-                <div class="bg-cyan-500 text-white p-4 rounded-md text-center font-bold">
+                <div class="bg-cyan-500 text-white p-2 sm:p-4 rounded-md text-center font-bold text-sm sm:text-base">
                     Cian: ${coverage.cyan.toFixed(1)}%
                 </div>
-                <div class="bg-fuchsia-500 text-white p-4 rounded-md text-center font-bold">
+                <div class="bg-fuchsia-500 text-white p-2 sm:p-4 rounded-md text-center font-bold text-sm sm:text-base">
                     Magenta: ${coverage.magenta.toFixed(1)}%
                 </div>
-                <div class="bg-yellow-400 text-white p-4 rounded-md text-center font-bold">
+                <div class="bg-yellow-400 text-white p-2 sm:p-4 rounded-md text-center font-bold text-sm sm:text-base">
                     Amarillo: ${coverage.yellow.toFixed(1)}%
                 </div>
-                <div class="bg-black text-white p-4 rounded-md text-center font-bold">
+                <div class="bg-black text-white p-2 sm:p-4 rounded-md text-center font-bold text-sm sm:text-base">
                     Negro: ${coverage.black.toFixed(1)}%
                 </div>
             `;

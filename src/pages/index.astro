@@ -12,71 +12,73 @@ import "../styles/global.css";
 </head>
 <body class="bg-gray-100 m-0">
   <Nav />
-  <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-    <h1 class="text-3xl text-center text-gray-800 mb-6">Calculadora de Costos</h1>
-    
-    <button 
-      id="btnConfig" 
-      onclick="toggleConfig()"
-      class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-    >
-      Configurar Variables
-    </button>
-    
-    <div class="hidden bg-gray-100 p-4 rounded-md mt-6" id="configuracion">
-      <h2 class="text-2xl text-center text-gray-800 mb-4">Configuración de Variables</h2>
+  <div class="max-w-2xl mx-auto px-4 py-4 sm:py-6">
+    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+      <h1 class="text-2xl sm:text-3xl text-center text-gray-800 mb-4 sm:mb-6">Calculadora de Costos</h1>
       
-      <label class="block mt-4 text-gray-700">
-        Costo de impresión A4 (S/.)
-        <input type="number" id="costoImpresionA4" placeholder="1.0" step="0.01" min="0" value="1.0"
-          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button 
+        id="btnConfig" 
+        onclick="toggleConfig()"
+        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm sm:text-base"
+      >
+        Configurar Variables
+      </button>
+      
+      <div class="hidden bg-gray-100 p-3 sm:p-4 rounded-md mt-4 sm:mt-6" id="configuracion">
+        <h2 class="text-xl sm:text-2xl text-center text-gray-800 mb-3 sm:mb-4">Configuración de Variables</h2>
+        
+        <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+          Costo de impresión A4 (S/.)
+          <input type="number" id="costoImpresionA4" placeholder="1.0" step="0.01" min="0" value="1.0"
+            class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+        </label>
+        
+        <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+          Costo de corte (S/.)
+          <input type="number" id="costoCorte" placeholder="1.0" step="0.01" min="0" value="1.0"
+            class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+        </label>
+        
+        <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+          Costo del papel A4 (S/.)
+          <input type="number" id="costoPapelA4" placeholder="0.3" step="0.01" min="0" value="0.3"
+            class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+        </label>
+        
+        <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+          Margen de impresión (mm)
+          <input type="number" id="margen" placeholder="4" step="0.1" min="0" value="4"
+            class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+        </label>
+      </div>
+      
+      <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+        Ancho de la pieza (cm):
+        <input type="number" id="ancho" placeholder="Ej. 5" step="0.01" min="0"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
       </label>
       
-      <label class="block mt-4 text-gray-700">
-        Costo de corte (S/.)
-        <input type="number" id="costoCorte" placeholder="1.0" step="0.01" min="0" value="1.0"
-          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+        Largo de la pieza (cm):
+        <input type="number" id="largo" placeholder="Ej. 10" step="0.01" min="0"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
       </label>
       
-      <label class="block mt-4 text-gray-700">
-        Costo del papel A4 (S/.)
-        <input type="number" id="costoPapelA4" placeholder="0.3" step="0.01" min="0" value="0.3"
-          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <label class="block mt-3 sm:mt-4 text-gray-700 text-sm sm:text-base">
+        Cantidad requerida:
+        <input type="number" id="cantidad" placeholder="Ej. 100" step="1" min="1"
+          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
       </label>
       
-      <label class="block mt-4 text-gray-700">
-        Margen de impresión (mm)
-        <input type="number" id="margen" placeholder="4" step="0.1" min="0" value="4"
-          class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </label>
+      <button 
+        onclick="calcularCostos()"
+        class="w-full mt-4 sm:mt-6 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm sm:text-base"
+      >
+        Calcular
+      </button>
+      
+      <div class="mt-4 sm:mt-6 bg-gray-100 p-3 sm:p-4 rounded-md text-sm sm:text-base" id="resultados"></div>
     </div>
-    
-    <label class="block mt-4 text-gray-700">
-      Ancho de la pieza (cm):
-      <input type="number" id="ancho" placeholder="Ej. 5" step="0.01" min="0"
-        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </label>
-    
-    <label class="block mt-4 text-gray-700">
-      Largo de la pieza (cm):
-      <input type="number" id="largo" placeholder="Ej. 10" step="0.01" min="0"
-        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </label>
-    
-    <label class="block mt-4 text-gray-700">
-      Cantidad requerida:
-      <input type="number" id="cantidad" placeholder="Ej. 100" step="1" min="1"
-        class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </label>
-    
-    <button 
-      onclick="calcularCostos()"
-      class="w-full mt-6 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-    >
-      Calcular
-    </button>
-    
-    <div class="mt-6 bg-gray-100 p-4 rounded-md" id="resultados"></div>
   </div>
 
   <script is:inline>
@@ -140,16 +142,16 @@ import "../styles/global.css";
       // Mostrar resultados
       const resultadosDiv = document.getElementById("resultados");
       resultadosDiv.innerHTML = `
-        <p><strong>Área imprimible de A4:</strong> ${areaA4.toFixed(2)} cm²</p>
-        <p><strong>Costo total de A4:</strong> S/.${costoTotalA4.toFixed(2)}</p>
-        <p><strong>Costo por cm²:</strong> S/.${costoPorCm2.toFixed(5)}</p>
-        <hr>
-        <p><strong>Área de la pieza:</strong> ${areaPieza.toFixed(2)} cm²</p>
-        <p><strong>Costo de una pieza:</strong> S/.${costoPieza.toFixed(2)}</p>
-        <p><strong>Costo total para ${cantidad} pieza(s):</strong> S/.${costoTotal.toFixed(2)}</p>
-        <hr>
-        <p><strong>Piezas que caben en un A4:</strong> ${piezasPorA4}</p>
-        <p><strong>Hojas A4 requeridas:</strong> ${hojasRequeridas}</p>
+        <p class="mb-1"><strong>Área imprimible de A4:</strong> ${areaA4.toFixed(2)} cm²</p>
+        <p class="mb-1"><strong>Costo total de A4:</strong> S/.${costoTotalA4.toFixed(2)}</p>
+        <p class="mb-1"><strong>Costo por cm²:</strong> S/.${costoPorCm2.toFixed(5)}</p>
+        <hr class="my-2 sm:my-3">
+        <p class="mb-1"><strong>Área de la pieza:</strong> ${areaPieza.toFixed(2)} cm²</p>
+        <p class="mb-1"><strong>Costo de una pieza:</strong> S/.${costoPieza.toFixed(2)}</p>
+        <p class="mb-1"><strong>Costo total para ${cantidad} pieza(s):</strong> S/.${costoTotal.toFixed(2)}</p>
+        <hr class="my-2 sm:my-3">
+        <p class="mb-1"><strong>Piezas que caben en un A4:</strong> ${piezasPorA4}</p>
+        <p class="mb-1"><strong>Hojas A4 requeridas:</strong> ${hojasRequeridas}</p>
       `;
     }
   </script>
