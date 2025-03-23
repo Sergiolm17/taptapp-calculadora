@@ -69,7 +69,7 @@ import "../styles/global.css";
                 
                 <div id="totalCostResult" class="text-xl sm:text-2xl text-green-600 font-bold text-center my-3 sm:my-5"></div>
                 <div class="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-5">
-                    * Cálculo basado en consumo de 0.05g por color al 20% de cobertura y costo de S/0.45 por gramo de tóner
+                    * Cálculo basado en consumo de tóner donde 450g a 5% de cobertura rinde 60000 páginas y costo de S/130 por 400g de tóner
                 </div>
             </div>
         </div>
@@ -81,8 +81,11 @@ import "../styles/global.css";
         // Configurar PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        const TONER_COST_PER_GRAM = 0.45;
-        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.05;
+        // S/130 por 400g = 0.325 soles por gramo
+        const TONER_COST_PER_GRAM = 0.325;
+        // 450g / 60000 páginas = 0.0075g por página al 5% de cobertura
+        // Normalizado al 20% = 0.0075 * (20/5) = 0.03g por página al 20% de cobertura
+        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.03;
         
         let pdfDoc = null;
         let pageNum = 1;

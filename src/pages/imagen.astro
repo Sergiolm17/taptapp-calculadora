@@ -41,15 +41,18 @@ import "../styles/global.css";
                 <div id="coverageResults" class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 my-3 sm:my-5"></div>
                 <div id="costResult" class="text-xl sm:text-2xl text-green-600 font-bold text-center my-3 sm:my-5"></div>
                 <div class="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-5">
-                    * Cálculo basado en consumo de 0.05g por color al 20% de cobertura y costo de S/0.45 por gramo de tóner
+                    * Cálculo basado en consumo de tóner donde 450g a 5% de cobertura rinde 60000 páginas y costo de S/130 por 400g de tóner
                 </div>
             </div>
         </div>
     </div>
 
     <script is:inline>
-        const TONER_COST_PER_GRAM = 0.45;
-        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.05;
+        // S/130 por 400g = 0.325 soles por gramo
+        const TONER_COST_PER_GRAM = 0.325;
+        // 450g / 60000 páginas = 0.0075g por página al 5% de cobertura
+        // Normalizado al 20% = 0.0075 * (20/5) = 0.03g por página al 20% de cobertura
+        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.03;
 
         document.getElementById('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
