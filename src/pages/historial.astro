@@ -1,0 +1,485 @@
+---
+import Nav from '../components/Nav.astro';
+import "../styles/global.css";
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Análisis</title>
+</head>
+<body class="bg-gray-100 m-0">
+    <Nav />
+    <div class="max-w-4xl mx-auto px-4 py-4 sm:py-6">
+        <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Historial de Análisis</h1>
+            
+            <div class="mb-6 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <select id="filterType" class="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option value="all">Todos los tipos</option>
+                        <option value="image">Imágenes</option>
+                        <option value="pdf">Documentos PDF</option>
+                    </select>
+                    <button id="btnLimpiarFiltro" class="text-sm text-blue-600 hover:text-blue-800">
+                        Limpiar filtro
+                    </button>
+                </div>
+                <button id="btnLimpiarHistorial" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm transition-colors">
+                    Limpiar historial
+                </button>
+            </div>
+            
+            <div id="historialVacio" class="hidden text-center py-10">
+                <p class="text-gray-500 text-lg">No hay análisis en tu historial.</p>
+                <p class="text-gray-500 mt-2">Analiza documentos o imágenes para verlos aquí.</p>
+            </div>
+            
+            <div id="historialContainer">
+                <ul id="historialList" class="space-y-4"></ul>
+                
+                <div class="mt-6 flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        Mostrando <span id="itemsShowing">0</span> de <span id="totalItems">0</span> items
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="prevPage" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            Anterior
+                        </button>
+                        <div id="pageNumbers" class="flex gap-1">
+                            <!-- Los números de página se generarán dinámicamente -->
+                        </div>
+                        <button id="nextPage" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template id="imageItemTemplate">
+        <li class="border border-gray-200 rounded-lg overflow-hidden">
+            <div class="bg-gray-50 p-3 cursor-pointer flex justify-between items-center toggle-header">
+                <div class="flex items-center gap-3">
+                    <span class="text-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <div>
+                        <span class="item-title font-medium">Imagen analizada</span>
+                        <span class="item-date text-sm text-gray-500 ml-2"></span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="item-cost bg-green-100 text-green-800 text-sm font-medium px-2 py-1 rounded-full"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+            <div class="p-4 hidden item-details">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="sm:w-1/3">
+                        <img class="item-preview w-full h-auto rounded-md border border-gray-200" src="" alt="Vista previa">
+                    </div>
+                    <div class="sm:w-2/3">
+                        <h3 class="text-lg font-medium mb-2">Cobertura de color</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 item-coverage"></div>
+                        
+                        <div class="mt-4 flex justify-end gap-2">
+                            <button class="btn-reanalizar bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm transition-colors">
+                                Reanalizar
+                            </button>
+                            <button class="btn-eliminar bg-red-100 hover:bg-red-200 text-red-800 px-3 py-2 rounded-md text-sm transition-colors">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </template>
+
+    <template id="pdfItemTemplate">
+        <li class="border border-gray-200 rounded-lg overflow-hidden">
+            <div class="bg-gray-50 p-3 cursor-pointer flex justify-between items-center toggle-header">
+                <div class="flex items-center gap-3">
+                    <span class="text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <div>
+                        <span class="item-title font-medium">Documento PDF</span>
+                        <span class="item-date text-sm text-gray-500 ml-2"></span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="item-cost bg-green-100 text-green-800 text-sm font-medium px-2 py-1 rounded-full"></span>
+                    <span class="item-pages bg-gray-100 text-gray-800 text-sm font-medium px-2 py-1 rounded-full"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+            <div class="p-4 hidden item-details">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden text-sm">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-1 px-2 border-b">Página</th>
+                                <th class="py-1 px-2 border-b">Cian %</th>
+                                <th class="py-1 px-2 border-b">Magenta %</th>
+                                <th class="py-1 px-2 border-b">Amarillo %</th>
+                                <th class="py-1 px-2 border-b">Negro %</th>
+                                <th class="py-1 px-2 border-b">Costo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="item-pages-detail">
+                            <!-- Los resultados por página se mostrarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-end gap-2">
+                    <button class="btn-reanalizar bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm transition-colors">
+                        Reanalizar
+                    </button>
+                    <button class="btn-eliminar bg-red-100 hover:bg-red-200 text-red-800 px-3 py-2 rounded-md text-sm transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </li>
+    </template>
+
+    <script is:inline>
+        // Configuración de paginación
+        const ITEMS_PER_PAGE = 5;
+        let currentPage = 1;
+        let filteredHistory = [];
+        
+        // Función para cargar el historial desde localStorage
+        function loadHistory() {
+            try {
+                const imageHistory = JSON.parse(localStorage.getItem('taptappImageHistory') || '[]');
+                const pdfHistory = JSON.parse(localStorage.getItem('taptappPdfHistory') || '[]');
+                
+                // Combinar y ordenar por fecha (más reciente primero)
+                return [...imageHistory, ...pdfHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+            } catch (e) {
+                console.error('Error al cargar el historial:', e);
+                return [];
+            }
+        }
+        
+        // Aplicar filtro al historial
+        function applyFilter(history, filterType) {
+            if (filterType === 'all') return history;
+            return history.filter(item => item.type === filterType);
+        }
+        
+        // Renderizar un elemento de imagen
+        function renderImageItem(item, index) {
+            const template = document.getElementById('imageItemTemplate');
+            const clone = document.importNode(template.content, true);
+            
+            // Configurar datos básicos
+            clone.querySelector('.item-title').textContent = item.filename || 'Imagen sin nombre';
+            clone.querySelector('.item-date').textContent = formatDate(item.date);
+            clone.querySelector('.item-cost').textContent = `S/${item.cost.total.toFixed(2)}`;
+            clone.querySelector('.item-preview').src = item.thumbnail || '';
+            
+            // Configurar cobertura
+            const coverageContainer = clone.querySelector('.item-coverage');
+            coverageContainer.innerHTML = `
+                <div class="bg-cyan-500 text-white p-2 rounded-md text-center font-bold text-sm">
+                    Cian: ${item.coverage.cyan.toFixed(1)}%
+                </div>
+                <div class="bg-fuchsia-500 text-white p-2 rounded-md text-center font-bold text-sm">
+                    Magenta: ${item.coverage.magenta.toFixed(1)}%
+                </div>
+                <div class="bg-yellow-400 text-white p-2 rounded-md text-center font-bold text-sm">
+                    Amarillo: ${item.coverage.yellow.toFixed(1)}%
+                </div>
+                <div class="bg-black text-white p-2 rounded-md text-center font-bold text-sm">
+                    Negro: ${item.coverage.black.toFixed(1)}%
+                </div>
+            `;
+            
+            // Configurar botones y eventos
+            setupItemEvents(clone, item, index);
+            
+            return clone;
+        }
+        
+        // Renderizar un elemento de PDF
+        function renderPdfItem(item, index) {
+            const template = document.getElementById('pdfItemTemplate');
+            const clone = document.importNode(template.content, true);
+            
+            // Configurar datos básicos
+            clone.querySelector('.item-title').textContent = item.filename || 'Documento PDF';
+            clone.querySelector('.item-date').textContent = formatDate(item.date);
+            clone.querySelector('.item-cost').textContent = `S/${item.totalCost.toFixed(2)}`;
+            clone.querySelector('.item-pages').textContent = `${item.pages.length} páginas`;
+            
+            // Configurar detalle de páginas
+            const pagesDetailContainer = clone.querySelector('.item-pages-detail');
+            pagesDetailContainer.innerHTML = '';
+            
+            item.pages.forEach(page => {
+                const row = document.createElement('tr');
+                
+                // Añadir celdas a la fila
+                const cellClasses = 'py-1 px-2 border-b text-center';
+                
+                // Página y dimensiones
+                const pageCell = document.createElement('td');
+                pageCell.className = cellClasses;
+                pageCell.textContent = page.dimensions ? 
+                    `${page.pageNum} (${page.dimensions.width.toFixed(0)}×${page.dimensions.height.toFixed(0)})` : 
+                    `${page.pageNum}`;
+                row.appendChild(pageCell);
+                
+                // Cian
+                const cyanCell = document.createElement('td');
+                cyanCell.className = cellClasses;
+                cyanCell.textContent = page.coverage.cyan.toFixed(1);
+                row.appendChild(cyanCell);
+                
+                // Magenta
+                const magentaCell = document.createElement('td');
+                magentaCell.className = cellClasses;
+                magentaCell.textContent = page.coverage.magenta.toFixed(1);
+                row.appendChild(magentaCell);
+                
+                // Amarillo
+                const yellowCell = document.createElement('td');
+                yellowCell.className = cellClasses;
+                yellowCell.textContent = page.coverage.yellow.toFixed(1);
+                row.appendChild(yellowCell);
+                
+                // Negro
+                const blackCell = document.createElement('td');
+                blackCell.className = cellClasses;
+                blackCell.textContent = page.coverage.black.toFixed(1);
+                row.appendChild(blackCell);
+                
+                // Costo
+                const costCell = document.createElement('td');
+                costCell.className = cellClasses;
+                costCell.textContent = `S/${page.cost.total.toFixed(3)}`;
+                row.appendChild(costCell);
+                
+                pagesDetailContainer.appendChild(row);
+            });
+            
+            // Configurar botones y eventos
+            setupItemEvents(clone, item, index);
+            
+            return clone;
+        }
+        
+        // Configurar eventos para un elemento del historial
+        function setupItemEvents(element, item, index) {
+            const toggleHeader = element.querySelector('.toggle-header');
+            const toggleIcon = element.querySelector('.toggle-icon');
+            const itemDetails = element.querySelector('.item-details');
+            const btnEliminar = element.querySelector('.btn-eliminar');
+            const btnReanalizar = element.querySelector('.btn-reanalizar');
+            
+            // Toggle para mostrar/ocultar detalles
+            toggleHeader.addEventListener('click', () => {
+                itemDetails.classList.toggle('hidden');
+                toggleIcon.classList.toggle('rotate-180');
+            });
+            
+            // Botón eliminar
+            btnEliminar.addEventListener('click', () => {
+                deleteHistoryItem(item, index);
+            });
+            
+            // Botón reanalizar
+            btnReanalizar.addEventListener('click', () => {
+                reanalyzeItem(item);
+            });
+        }
+        
+        // Eliminar un elemento del historial
+        function deleteHistoryItem(item, index) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este elemento del historial?')) {
+                return;
+            }
+            
+            try {
+                // Determinar qué storage debemos modificar
+                const storageKey = item.type === 'image' ? 'taptappImageHistory' : 'taptappPdfHistory';
+                let historyItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                
+                // Buscar el índice del ítem en el array original
+                const origIndex = historyItems.findIndex(i => 
+                    i.id === item.id || 
+                    (i.date === item.date && i.filename === item.filename)
+                );
+                
+                if (origIndex !== -1) {
+                    historyItems.splice(origIndex, 1);
+                    localStorage.setItem(storageKey, JSON.stringify(historyItems));
+                    renderHistoryPage(); // Actualizar la vista
+                }
+            } catch (e) {
+                console.error('Error al eliminar el elemento:', e);
+                alert('Ocurrió un error al eliminar el elemento.');
+            }
+        }
+        
+        // Reanalizar un elemento
+        function reanalyzeItem(item) {
+            // Redirigir a la página correspondiente para reanalizar
+            if (item.type === 'image') {
+                window.location.href = '/imagen?reanalyze=' + encodeURIComponent(item.id || item.date);
+            } else if (item.type === 'pdf') {
+                window.location.href = '/pdf?reanalyze=' + encodeURIComponent(item.id || item.date);
+            }
+        }
+        
+        // Formatear fecha
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Renderizar una página del historial
+        function renderHistoryPage() {
+            const historyList = document.getElementById('historialList');
+            const historialVacio = document.getElementById('historialVacio');
+            const historialContainer = document.getElementById('historialContainer');
+            const filterType = document.getElementById('filterType').value;
+            
+            // Cargar y filtrar historial
+            const history = loadHistory();
+            filteredHistory = applyFilter(history, filterType);
+            
+            // Mostrar mensaje si no hay elementos
+            if (filteredHistory.length === 0) {
+                historialVacio.classList.remove('hidden');
+                historialContainer.classList.add('hidden');
+                return;
+            }
+            
+            historialVacio.classList.add('hidden');
+            historialContainer.classList.remove('hidden');
+            
+            // Calcular paginación
+            const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredHistory.length);
+            const currentItems = filteredHistory.slice(startIndex, endIndex);
+            
+            // Actualizar información de paginación
+            document.getElementById('itemsShowing').textContent = `${startIndex + 1}-${endIndex}`;
+            document.getElementById('totalItems').textContent = filteredHistory.length;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+            
+            // Generar números de página
+            const pageNumbers = document.getElementById('pageNumbers');
+            pageNumbers.innerHTML = '';
+            
+            // Determinar qué números de página mostrar
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            // Ajustar el rango si estamos cerca del final
+            if (endPage - startPage < 4 && startPage > 1) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = i === currentPage 
+                    ? 'bg-blue-500 text-white px-3 py-1 rounded-md text-sm' 
+                    : 'bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md text-sm';
+                pageButton.addEventListener('click', () => {
+                    currentPage = i;
+                    renderHistoryPage();
+                });
+                pageNumbers.appendChild(pageButton);
+            }
+            
+            // Limpiar y rellenar lista de historial
+            historyList.innerHTML = '';
+            
+            currentItems.forEach((item, index) => {
+                let listItem;
+                if (item.type === 'image') {
+                    listItem = renderImageItem(item, startIndex + index);
+                } else if (item.type === 'pdf') {
+                    listItem = renderPdfItem(item, startIndex + index);
+                }
+                
+                if (listItem) {
+                    historyList.appendChild(listItem);
+                }
+            });
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar y mostrar historial
+            renderHistoryPage();
+            
+            // Configurar eventos
+            document.getElementById('filterType').addEventListener('change', () => {
+                currentPage = 1;
+                renderHistoryPage();
+            });
+            
+            document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
+                document.getElementById('filterType').value = 'all';
+                currentPage = 1;
+                renderHistoryPage();
+            });
+            
+            document.getElementById('btnLimpiarHistorial').addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que deseas eliminar todo el historial? Esta acción no se puede deshacer.')) {
+                    localStorage.removeItem('taptappImageHistory');
+                    localStorage.removeItem('taptappPdfHistory');
+                    renderHistoryPage();
+                }
+            });
+            
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderHistoryPage();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderHistoryPage();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

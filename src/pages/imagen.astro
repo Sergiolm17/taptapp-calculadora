@@ -191,6 +191,78 @@ import "../styles/global.css";
             document.getElementById('costResult').innerHTML = `
                 Costo total por hoja: S/${cost.total.toFixed(2)}
             `;
+            
+            // Guardar en historial
+            saveToHistory(coverage, cost);
+        }
+        
+        // Guardar análisis en el historial (localStorage)
+        function saveToHistory(coverage, cost) {
+            try {
+                // Obtener imagen en miniatura
+                const img = document.getElementById('preview');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Crear miniatura
+                const MAX_THUMBNAIL_SIZE = 200;
+                let thumbWidth, thumbHeight;
+                
+                if (img.width > img.height) {
+                    thumbWidth = Math.min(MAX_THUMBNAIL_SIZE, img.width);
+                    thumbHeight = (img.height / img.width) * thumbWidth;
+                } else {
+                    thumbHeight = Math.min(MAX_THUMBNAIL_SIZE, img.height);
+                    thumbWidth = (img.width / img.height) * thumbHeight;
+                }
+                
+                canvas.width = thumbWidth;
+                canvas.height = thumbHeight;
+                ctx.drawImage(img, 0, 0, thumbWidth, thumbHeight);
+                
+                const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Crear entrada de historial
+                const historyItem = {
+                    id: 'img_' + Date.now(),
+                    type: 'image',
+                    date: new Date().toISOString(),
+                    filename: document.getElementById('fileName').textContent,
+                    coverage,
+                    cost,
+                    thumbnail
+                };
+                
+                // Recuperar historial existente
+                const history = JSON.parse(localStorage.getItem('taptappImageHistory') || '[]');
+                
+                // Limitar a 50 entradas máximo
+                if (history.length >= 50) {
+                    history.pop(); // Eliminar la entrada más antigua
+                }
+                
+                // Añadir nueva entrada al principio
+                history.unshift(historyItem);
+                
+                // Guardar historial actualizado
+                localStorage.setItem('taptappImageHistory', JSON.stringify(history));
+                
+                // Añadir enlace al historial en la interfaz
+                const resultsElement = document.getElementById('results');
+                if (!document.getElementById('historyLink')) {
+                    const historyLink = document.createElement('div');
+                    historyLink.id = 'historyLink';
+                    historyLink.className = 'mt-4 text-center';
+                    historyLink.innerHTML = `
+                        <a href="/historial" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Ver historial de análisis →
+                        </a>
+                    `;
+                    resultsElement.appendChild(historyLink);
+                }
+            } catch (e) {
+                console.error('Error al guardar en historial:', e);
+            }
         }
     </script>
 </body>

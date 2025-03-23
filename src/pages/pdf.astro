@@ -414,6 +414,88 @@ import "../styles/global.css";
             document.getElementById('totalCostResult').innerHTML = `
                 Costo total del documento: S/${totalCost.toFixed(3)}
             `;
+            
+            // Guardar en historial
+            saveToHistory(totalCost);
+        }
+        
+        // Guardar análisis en el historial (localStorage)
+        function saveToHistory(totalCost) {
+            try {
+                // Capturar miniatura de la primera página
+                const canvas = document.getElementById('pdfCanvas');
+                let thumbnail = '';
+                
+                try {
+                    // Intentar crear una miniatura del PDF
+                    const MAX_THUMBNAIL_SIZE = 200;
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    
+                    // Calcular dimensiones manteniendo proporciones
+                    let thumbWidth, thumbHeight;
+                    if (canvas.width > canvas.height) {
+                        thumbWidth = Math.min(MAX_THUMBNAIL_SIZE, canvas.width);
+                        thumbHeight = (canvas.height / canvas.width) * thumbWidth;
+                    } else {
+                        thumbHeight = Math.min(MAX_THUMBNAIL_SIZE, canvas.height);
+                        thumbWidth = (canvas.width / canvas.height) * thumbHeight;
+                    }
+                    
+                    tempCanvas.width = thumbWidth;
+                    tempCanvas.height = thumbHeight;
+                    tempCtx.fillStyle = '#fff';
+                    tempCtx.fillRect(0, 0, thumbWidth, thumbHeight);
+                    tempCtx.drawImage(canvas, 0, 0, thumbWidth, thumbHeight);
+                    
+                    thumbnail = tempCanvas.toDataURL('image/jpeg', 0.7);
+                } catch (e) {
+                    console.warn('No se pudo crear miniatura del PDF', e);
+                }
+                
+                // Crear entrada de historial
+                const historyItem = {
+                    id: 'pdf_' + Date.now(),
+                    type: 'pdf',
+                    date: new Date().toISOString(),
+                    filename: document.getElementById('fileName').textContent,
+                    pages: pageResults,
+                    totalCost: totalCost,
+                    inkCosts: totalInkCosts,
+                    pageCount: pdfDoc.numPages,
+                    thumbnail: thumbnail
+                };
+                
+                // Recuperar historial existente
+                const history = JSON.parse(localStorage.getItem('taptappPdfHistory') || '[]');
+                
+                // Limitar a 50 entradas máximo
+                if (history.length >= 50) {
+                    history.pop(); // Eliminar la entrada más antigua
+                }
+                
+                // Añadir nueva entrada al principio
+                history.unshift(historyItem);
+                
+                // Guardar historial actualizado
+                localStorage.setItem('taptappPdfHistory', JSON.stringify(history));
+                
+                // Añadir enlace al historial en la interfaz
+                const resultsElement = document.getElementById('results');
+                if (!document.getElementById('historyLink')) {
+                    const historyLink = document.createElement('div');
+                    historyLink.id = 'historyLink';
+                    historyLink.className = 'mt-4 text-center';
+                    historyLink.innerHTML = `
+                        <a href="/historial" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Ver historial de análisis →
+                        </a>
+                    `;
+                    resultsElement.appendChild(historyLink);
+                }
+            } catch (e) {
+                console.error('Error al guardar en historial:', e);
+            }
         }
         
         function showInkCostSummary() {

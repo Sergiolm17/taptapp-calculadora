@@ -35,7 +35,20 @@ Esta aplicación web permite calcular los costos de impresión basados en el con
 - Ajusta automáticamente los costos según el tamaño de cada página
   - Por ejemplo: una página A3 con 5% de cobertura consumirá el doble de tóner que una A4
 
-### 4. Panel de Control Administrativo (/admin)
+### 4. Historial de Análisis (/historial)
+
+- Muestra todos los análisis realizados previamente (documentos e imágenes)
+- Almacena los datos en el almacenamiento local del navegador
+- Características:
+  - Sistema de paginación para navegar entre múltiples registros
+  - Toggle para expandir/colapsar detalles de cada análisis
+  - Filtrado por tipo de documento (PDF/Imagen)
+  - Posibilidad de reanalizar documentos anteriores
+  - Vista previa en miniatura de imágenes analizadas
+  - Datos detallados de cobertura y costos para cada registro
+- Permite borrar entradas individuales o todo el historial
+
+### 5. Panel de Control Administrativo (/admin)
 
 - Permite personalizar todos los parámetros utilizados en los cálculos:
   - Precio del tóner
@@ -50,7 +63,7 @@ Esta aplicación web permite calcular los costos de impresión basados en el con
 - Guarda la configuración en el almacenamiento local del navegador
 - La configuración guardada se aplica automáticamente a todas las calculadoras
 
-### 5. Comparador de Documentos (/comparador)
+### 6. Comparador de Documentos (/comparador)
 
 - Permite subir y analizar dos versiones de un documento PDF
 - Muestra los documentos lado a lado para facilitar la comparación visual
@@ -117,6 +130,60 @@ Esta aplicación web permite calcular los costos de impresión basados en el con
    - Opción para reformatear automáticamente documentos para menor consumo
 
 4. **Calculadora de Impacto Ambiental**
+
    - Estimaría la huella de carbono de las impresiones
    - Mostraría el ahorro en recursos al optimizar documentos
    - Recomendaciones para impresión más sostenible
+
+5. **Analizador de Historial de Impresión**
+
+   - Importación de registros de impresión desde impresoras
+   - Análisis de tendencias de consumo de tóner por período
+   - Visualización gráfica del uso de diferentes colores a lo largo del tiempo
+
+6. **Simulador de Cobertura y Costos**
+
+   - Herramienta educativa para visualizar cómo diferentes porcentajes de cobertura afectan los costos
+   - Permitiría ajustar la cobertura de cada color y ver resultados en tiempo real
+   - Galería de ejemplos prácticos con diferentes tipos de documentos
+
+7. **Presupuestador de Proyectos de Impresión**
+
+   - Estimación de costos para proyectos grandes (libros, revistas, folletos)
+   - Cálculo de variantes (diferentes papeles, acabados, encuadernaciones)
+   - Comparativa de costos entre impresión interna vs servicios externos
+
+8. **Gestor de Perfiles de Impresoras**
+
+   - Administración de múltiples modelos de impresoras con diferentes rendimientos
+   - Configuración de perfiles por departamento o uso
+   - Comparativa de eficiencia entre diferentes equipos
+
+9. **Integración con API de Sistemas ERP**
+
+   - Conexión con sistemas de gestión empresarial
+   - Sincronización de precios de insumos en tiempo real
+   - Integración con módulos de contabilidad para facturación precisa
+
+10. **Aplicación Móvil Complementaria**
+    - Versión adaptada para dispositivos móviles
+    - Escaneo de documentos con la cámara para análisis rápido
+    - Notificaciones sobre cambios en precios de insumos
+
+### Mejoras Técnicas Propuestas
+
+1. **Exportación de Resultados**
+
+   - Permitir exportar análisis en formato PDF, CSV y XLSX
+   - Generación de reportes personalizables
+
+2. **Sistema de Cuentas de Usuario**
+
+   - Perfiles con historial de documentos analizados
+   - Configuraciones guardadas en la nube
+   - Roles y permisos para empresas (administrador, operador, etc.)
+
+3. **Panel de Estadísticas Avanzadas**
+   - Dashboard con métricas clave de uso
+   - Análisis de tendencias y comportamientos
+   - Recomendaciones inteligentes basadas en el uso
