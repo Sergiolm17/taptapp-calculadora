@@ -145,6 +145,8 @@ import "../styles/global.css";
                     </table>
                 </div>
                 
+                <div class="mt-4 item-color-profile text-sm text-gray-700"></div>
+                
                 <div class="mt-4 flex justify-end gap-2">
                     <button class="btn-reanalizar bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm transition-colors">
                         Reanalizar
@@ -227,6 +229,23 @@ import "../styles/global.css";
             clone.querySelector('.item-date').textContent = formatDate(item.date);
             clone.querySelector('.item-cost').textContent = `S/${item.totalCost.toFixed(2)}`;
             clone.querySelector('.item-pages').textContent = `${item.pages.length} páginas`;
+            
+            // Mostrar información del perfil de color si existe
+            const profileElement = clone.querySelector('.item-color-profile');
+            if (item.colorProfile) {
+                const profileNames = {
+                    'default': 'Perfil por defecto del PDF',
+                    'ISOcoated_v2_eci': 'ISO Coated v2 (ECI)',
+                    'FOGRA39': 'FOGRA39',
+                    'USWebCoatedSWOP': 'US Web Coated (SWOP) v2',
+                    'GRACoL2006_Coated1v2': 'GRACoL 2006 (ISO 12647-2:2004)'
+                };
+                
+                const profileName = profileNames[item.colorProfile] || item.colorProfile;
+                profileElement.innerHTML = `<span class="font-medium">Perfil de color:</span> ${profileName}`;
+            } else {
+                profileElement.style.display = 'none';
+            }
             
             // Configurar detalle de páginas
             const pagesDetailContainer = clone.querySelector('.item-pages-detail');
@@ -344,7 +363,12 @@ import "../styles/global.css";
             if (item.type === 'image') {
                 window.location.href = '/imagen?reanalyze=' + encodeURIComponent(item.id || item.date);
             } else if (item.type === 'pdf') {
-                window.location.href = '/pdf?reanalyze=' + encodeURIComponent(item.id || item.date);
+                // Pasar también el perfil de color si existe
+                let url = '/pdf?reanalyze=' + encodeURIComponent(item.id || item.date);
+                if (item.colorProfile) {
+                    url += '&profile=' + encodeURIComponent(item.colorProfile);
+                }
+                window.location.href = url;
             }
         }
         
