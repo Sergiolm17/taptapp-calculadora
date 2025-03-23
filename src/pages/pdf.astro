@@ -83,9 +83,11 @@ import "../styles/global.css";
 
         // S/130 por 400g = 0.325 soles por gramo
         const TONER_COST_PER_GRAM = 0.325;
-        // 450g / 60000 páginas = 0.0075g por página al 5% de cobertura
-        // Normalizado al 20% = 0.0075 * (20/5) = 0.03g por página al 20% de cobertura
+        // 450g / 60000 páginas = 0.0075g por página A4 al 5% de cobertura
+        // Normalizado al 20% = 0.0075 * (20/5) = 0.03g por página A4
         const GRAMS_PER_PAGE_PER_20_PERCENT = 0.03;
+        // Área de referencia A4 en puntos (72 puntos por pulgada)
+        const A4_AREA_POINTS = (8.27 * 11.69) * (72 * 72); // A4 en pulgadas * puntos por pulgada al cuadrado
         
         let pdfDoc = null;
         let pageNum = 1;
@@ -171,6 +173,11 @@ import "../styles/global.css";
                     const tempCanvas = document.createElement('canvas');
                     const tempCtx = tempCanvas.getContext('2d');
                     
+                    // Calcular el área real de la página en puntos
+                    const pageArea = viewport.width * viewport.height;
+                    // Factor de escala basado en el área relativa a un A4
+                    const areaScaleFactor = pageArea / A4_AREA_POINTS;
+                    
                     tempCanvas.width = viewport.width;
                     tempCanvas.height = viewport.height;
                     
@@ -179,7 +186,7 @@ import "../styles/global.css";
                         viewport: viewport
                     }).promise.then(function() {
                         const coverage = calculateCoverage(tempCanvas);
-                        const cost = calculateCost(coverage);
+                        const cost = calculateCost(coverage, areaScaleFactor);
                         
                         // Acumular costos de tinta
                         totalInkCosts.cyan += cost.cyan;
@@ -190,7 +197,13 @@ import "../styles/global.css";
                         pageResults.push({
                             pageNum: i,
                             coverage,
-                            cost
+                            cost,
+                            dimensions: {
+                                width: viewport.width,
+                                height: viewport.height,
+                                area: pageArea,
+                                scaleFactor: areaScaleFactor
+                            }
                         });
                     });
                 });
@@ -294,9 +307,9 @@ import "../styles/global.css";
             };
         }
 
-        function calculateCost(coverage) {
+        function calculateCost(coverage, areaScaleFactor = 1) {
             const costPerColor = (percentage) => 
-                (percentage/20) * GRAMS_PER_PAGE_PER_20_PERCENT * TONER_COST_PER_GRAM;
+                (percentage/20) * GRAMS_PER_PAGE_PER_20_PERCENT * TONER_COST_PER_GRAM * areaScaleFactor;
             
             return {
                 cyan: costPerColor(coverage.cyan),
@@ -319,10 +332,12 @@ import "../styles/global.css";
                 // Añadir celdas a la fila
                 const cellClasses = 'py-1 px-2 sm:py-2 sm:px-4 border-b text-center';
                 
-                // Página
+                // Página y dimensiones
                 const pageCell = document.createElement('td');
                 pageCell.className = cellClasses;
-                pageCell.textContent = result.pageNum;
+                const widthMm = (result.dimensions.width / 72) * 25.4;
+                const heightMm = (result.dimensions.height / 72) * 25.4;
+                pageCell.textContent = `${result.pageNum} (${widthMm.toFixed(0)}×${heightMm.toFixed(0)}mm)`;
                 row.appendChild(pageCell);
                 
                 // Cian
@@ -352,7 +367,7 @@ import "../styles/global.css";
                 // Costo
                 const costCell = document.createElement('td');
                 costCell.className = cellClasses;
-                costCell.textContent = `S/${result.cost.total.toFixed(2)}`;
+                costCell.textContent = `S/${result.cost.total.toFixed(3)}`;
                 row.appendChild(costCell);
                 
                 tableBody.appendChild(row);
@@ -363,7 +378,7 @@ import "../styles/global.css";
             showInkCostSummary();
             
             document.getElementById('totalCostResult').innerHTML = `
-                Costo total del documento: S/${totalCost.toFixed(2)}
+                Costo total del documento: S/${totalCost.toFixed(3)}
             `;
         }
         
