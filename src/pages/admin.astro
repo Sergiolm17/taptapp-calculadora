@@ -1,0 +1,232 @@
+---
+import Nav from '../components/Nav.astro';
+import "../styles/global.css";
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control Administrativo - TapTapp Calculadora</title>
+</head>
+<body class="bg-gray-100 m-0">
+    <Nav />
+    <div class="max-w-3xl mx-auto px-4 py-4 sm:py-6">
+        <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Panel de Control Administrativo</h1>
+            
+            <div id="settingsForm" class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-md mb-6 text-sm">
+                    <p class="font-medium text-blue-800">Esta configuración se aplicará a todas las calculadoras.</p>
+                    <p class="text-blue-700">Los cambios se guardarán automáticamente en este dispositivo.</p>
+                </div>
+                
+                <div class="border-b pb-4">
+                    <h2 class="text-xl text-gray-800 mb-4">Configuración de Costos</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tonerPrice" class="block text-sm font-medium text-gray-700 mb-1">Precio del Tóner (S/)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="tonerPrice" min="1" step="0.01" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="tonerWeight" class="block text-sm font-medium text-gray-700 mb-1">Peso del Tóner (g)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="tonerWeight" min="1" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-b pb-4">
+                    <h2 class="text-xl text-gray-800 mb-4">Rendimiento del Tóner</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tonerYield" class="block text-sm font-medium text-gray-700 mb-1">Rendimiento (# páginas A4)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="tonerYield" min="1" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="coveragePercent" class="block text-sm font-medium text-gray-700 mb-1">Porcentaje de Cobertura (%)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="coveragePercent" min="1" max="100" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="tonerYieldWeight" class="block text-sm font-medium text-gray-700 mb-1">Peso del Tóner para el Rendimiento (g)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="tonerYieldWeight" min="1" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b pb-4">
+                    <h2 class="text-xl text-gray-800 mb-4">Resultados Calculados</h2>
+                    <div class="grid grid-cols-1 gap-4 bg-gray-50 p-4 rounded-lg">
+                        <div>
+                            <p class="block text-sm font-medium text-gray-700 mb-1">Costo por gramo (S/)</p>
+                            <div class="font-bold text-lg" id="costPerGram">-</div>
+                        </div>
+                        <div>
+                            <p class="block text-sm font-medium text-gray-700 mb-1">Gramos por página al 5% (g)</p>
+                            <div class="font-bold text-lg" id="gramsPerPage5">-</div>
+                        </div>
+                        <div>
+                            <p class="block text-sm font-medium text-gray-700 mb-1">Gramos por página al 20% (g)</p>
+                            <div class="font-bold text-lg" id="gramsPerPage20">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="resetButton" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                        Restablecer valores predeterminados
+                    </button>
+                    <button id="saveButton" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                        Guardar configuración
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script is:inline>
+        // Valores predeterminados
+        const DEFAULT_SETTINGS = {
+            tonerPrice: 130,
+            tonerWeight: 400,
+            tonerYield: 60000,
+            coveragePercent: 5,
+            tonerYieldWeight: 450
+        };
+        
+        // Elementos del DOM
+        const tonerPriceInput = document.getElementById('tonerPrice');
+        const tonerWeightInput = document.getElementById('tonerWeight');
+        const tonerYieldInput = document.getElementById('tonerYield');
+        const coveragePercentInput = document.getElementById('coveragePercent');
+        const tonerYieldWeightInput = document.getElementById('tonerYieldWeight');
+        const costPerGramElement = document.getElementById('costPerGram');
+        const gramsPerPage5Element = document.getElementById('gramsPerPage5');
+        const gramsPerPage20Element = document.getElementById('gramsPerPage20');
+        const resetButton = document.getElementById('resetButton');
+        const saveButton = document.getElementById('saveButton');
+        
+        // Cargar configuración desde localStorage o usar valores predeterminados
+        function loadSettings() {
+            let settings;
+            try {
+                const savedSettings = localStorage.getItem('taptappSettings');
+                settings = savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
+            } catch (e) {
+                console.error('Error al cargar la configuración:', e);
+                settings = DEFAULT_SETTINGS;
+            }
+            
+            // Aplicar valores a los campos
+            tonerPriceInput.value = settings.tonerPrice;
+            tonerWeightInput.value = settings.tonerWeight;
+            tonerYieldInput.value = settings.tonerYield;
+            coveragePercentInput.value = settings.coveragePercent;
+            tonerYieldWeightInput.value = settings.tonerYieldWeight;
+            
+            // Calcular y mostrar resultados
+            updateCalculatedValues();
+        }
+        
+        // Guardar configuración en localStorage
+        function saveSettings() {
+            const settings = {
+                tonerPrice: parseFloat(tonerPriceInput.value),
+                tonerWeight: parseFloat(tonerWeightInput.value),
+                tonerYield: parseFloat(tonerYieldInput.value),
+                coveragePercent: parseFloat(coveragePercentInput.value),
+                tonerYieldWeight: parseFloat(tonerYieldWeightInput.value)
+            };
+            
+            try {
+                localStorage.setItem('taptappSettings', JSON.stringify(settings));
+                showNotification('Configuración guardada correctamente', 'success');
+            } catch (e) {
+                console.error('Error al guardar la configuración:', e);
+                showNotification('Error al guardar la configuración', 'error');
+            }
+        }
+        
+        // Calcular valores derivados
+        function updateCalculatedValues() {
+            const tonerPrice = parseFloat(tonerPriceInput.value);
+            const tonerWeight = parseFloat(tonerWeightInput.value);
+            const tonerYield = parseFloat(tonerYieldInput.value);
+            const coveragePercent = parseFloat(coveragePercentInput.value);
+            const tonerYieldWeight = parseFloat(tonerYieldWeightInput.value);
+            
+            // Cálculos
+            const costPerGram = tonerPrice / tonerWeight;
+            const gramsPerPage5 = tonerYieldWeight / tonerYield;
+            const gramsPerPage20 = gramsPerPage5 * (20 / coveragePercent);
+            
+            // Actualizar la UI
+            costPerGramElement.textContent = costPerGram.toFixed(4);
+            gramsPerPage5Element.textContent = gramsPerPage5.toFixed(6);
+            gramsPerPage20Element.textContent = gramsPerPage20.toFixed(6);
+        }
+        
+        // Mostrar notificación
+        function showNotification(message, type) {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `fixed bottom-4 right-4 p-4 rounded-md shadow-lg ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            notification.textContent = message;
+            
+            // Añadir al documento
+            document.body.appendChild(notification);
+            
+            // Eliminar después de 3 segundos
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            
+            // Input listeners para actualización en tiempo real
+            const inputs = [tonerPriceInput, tonerWeightInput, tonerYieldInput, coveragePercentInput, tonerYieldWeightInput];
+            inputs.forEach(input => {
+                input.addEventListener('input', updateCalculatedValues);
+            });
+            
+            // Botón de guardar
+            saveButton.addEventListener('click', saveSettings);
+            
+            // Botón de restablecer
+            resetButton.addEventListener('click', () => {
+                // Aplicar valores predeterminados
+                tonerPriceInput.value = DEFAULT_SETTINGS.tonerPrice;
+                tonerWeightInput.value = DEFAULT_SETTINGS.tonerWeight;
+                tonerYieldInput.value = DEFAULT_SETTINGS.tonerYield;
+                coveragePercentInput.value = DEFAULT_SETTINGS.coveragePercent;
+                tonerYieldWeightInput.value = DEFAULT_SETTINGS.tonerYieldWeight;
+                
+                // Actualizar cálculos
+                updateCalculatedValues();
+                
+                showNotification('Valores restablecidos', 'success');
+            });
+        });
+    </script>
+</body>
+</html> 

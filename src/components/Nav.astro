@@ -37,6 +37,15 @@
                 Calculadora PDF
             </a>
         </li>
+        <li>
+            <a 
+                href="/admin" 
+                class={`text-white px-2 sm:px-4 py-2 rounded-md transition-colors hover:bg-slate-700 
+                ${Astro.url.pathname === "/admin" ? "bg-blue-500" : ""}`}
+            >
+                Administración
+            </a>
+        </li>
     </ul>
 
     <!-- Sidebar para móvil - oculto por defecto -->
@@ -76,6 +85,15 @@
                         ${Astro.url.pathname === "/pdf" ? "bg-blue-500" : ""}`}
                     >
                         Calculadora PDF
+                    </a>
+                </li>
+                <li>
+                    <a 
+                        href="/admin" 
+                        class={`text-white px-4 py-2 rounded-md transition-colors hover:bg-slate-700 block
+                        ${Astro.url.pathname === "/admin" ? "bg-blue-500" : ""}`}
+                    >
+                        Administración
                     </a>
                 </li>
             </ul>

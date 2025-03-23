@@ -81,11 +81,19 @@ import "../styles/global.css";
         // Configurar PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        // S/130 por 400g = 0.325 soles por gramo
-        const TONER_COST_PER_GRAM = 0.325;
-        // 450g / 60000 páginas = 0.0075g por página A4 al 5% de cobertura
-        // Normalizado al 20% = 0.0075 * (20/5) = 0.03g por página A4
-        const GRAMS_PER_PAGE_PER_20_PERCENT = 0.03;
+        // Valores predeterminados en caso de que no haya configuración guardada
+        const DEFAULT_SETTINGS = {
+            tonerPrice: 130,
+            tonerWeight: 400,
+            tonerYield: 60000,
+            coveragePercent: 5,
+            tonerYieldWeight: 450
+        };
+        
+        // Calcular constantes a partir de la configuración
+        let TONER_COST_PER_GRAM;
+        let GRAMS_PER_PAGE_PER_20_PERCENT;
+        
         // Área de referencia A4 en puntos (72 puntos por pulgada)
         const A4_AREA_POINTS = (8.27 * 11.69) * (72 * 72); // A4 en pulgadas * puntos por pulgada al cuadrado
         
@@ -103,6 +111,32 @@ import "../styles/global.css";
             yellow: 0,
             black: 0
         };
+
+        // Cargar configuración desde localStorage
+        function loadSettings() {
+            let settings;
+            try {
+                const savedSettings = localStorage.getItem('taptappSettings');
+                settings = savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
+            } catch (e) {
+                console.error('Error al cargar la configuración:', e);
+                settings = DEFAULT_SETTINGS;
+            }
+            
+            // Calcular las constantes utilizadas en los cálculos
+            TONER_COST_PER_GRAM = settings.tonerPrice / settings.tonerWeight;
+            const gramsPerPageAtCoverage = settings.tonerYieldWeight / settings.tonerYield;
+            GRAMS_PER_PAGE_PER_20_PERCENT = gramsPerPageAtCoverage * (20 / settings.coveragePercent);
+            
+            // Actualizar texto explicativo
+            const explanationText = document.querySelector('.text-xs.sm\\:text-sm.text-gray-500');
+            if (explanationText) {
+                explanationText.textContent = `* Cálculo basado en consumo de tóner donde ${settings.tonerYieldWeight}g a ${settings.coveragePercent}% de cobertura rinde ${settings.tonerYield} páginas y costo de S/${settings.tonerPrice} por ${settings.tonerWeight}g de tóner`;
+            }
+        }
+        
+        // Cargar configuración al inicio
+        loadSettings();
 
         // Ajustar tamaño del canvas cuando cambia el tamaño de la ventana
         function resizeCanvas() {
