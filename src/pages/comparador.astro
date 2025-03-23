@@ -1,0 +1,521 @@
+---
+import Nav from '../components/Nav.astro';
+import "../styles/global.css";
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Documentos - TapTapp Calculadora</title>
+</head>
+<body class="bg-gray-100 m-0">
+    <Nav />
+    <div class="max-w-5xl mx-auto px-4 py-4 sm:py-6">
+        <div class="bg-white p-4 sm:p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">Comparador de Documentos</h1>
+            
+            <div class="bg-blue-50 p-4 rounded-md mb-6 text-sm">
+                <p class="font-medium text-blue-800">Compara dos versiones de un documento para evaluar diferencias en costos de impresión.</p>
+                <p class="text-blue-700">Ideal para determinar qué versión es más económica de imprimir.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Documento 1 -->
+                <div class="border rounded-lg p-4">
+                    <h2 class="text-lg sm:text-xl text-gray-800 mb-4 text-center">Documento 1</h2>
+                    
+                    <div class="text-center my-4">
+                        <label for="pdfInput1" class="block w-full max-w-xs mx-auto bg-blue-500 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors text-center">
+                            Elegir PDF 1
+                            <input
+                                type="file" 
+                                id="pdfInput1" 
+                                accept="application/pdf"
+                                class="hidden"
+                            >
+                        </label>
+                        <div id="fileName1" class="mt-2 text-sm text-gray-600"></div>
+                    </div>
+                    
+                    <div id="pdfContainer1" class="flex flex-col items-center hidden">
+                        <div id="pdfPreview1" class="w-full my-4 flex justify-center">
+                            <canvas id="pdfCanvas1" class="border-2 border-gray-200 rounded-lg p-2 bg-white max-w-full"></canvas>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mb-4 gap-2 w-full">
+                            <button id="prevPage1" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm">Anterior</button>
+                            <div id="pageInfo1" class="text-gray-700 text-sm">Página 0 de 0</div>
+                            <button id="nextPage1" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm">Siguiente</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Documento 2 -->
+                <div class="border rounded-lg p-4">
+                    <h2 class="text-lg sm:text-xl text-gray-800 mb-4 text-center">Documento 2</h2>
+                    
+                    <div class="text-center my-4">
+                        <label for="pdfInput2" class="block w-full max-w-xs mx-auto bg-blue-500 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors text-center">
+                            Elegir PDF 2
+                            <input
+                                type="file" 
+                                id="pdfInput2" 
+                                accept="application/pdf"
+                                class="hidden"
+                            >
+                        </label>
+                        <div id="fileName2" class="mt-2 text-sm text-gray-600"></div>
+                    </div>
+                    
+                    <div id="pdfContainer2" class="flex flex-col items-center hidden">
+                        <div id="pdfPreview2" class="w-full my-4 flex justify-center">
+                            <canvas id="pdfCanvas2" class="border-2 border-gray-200 rounded-lg p-2 bg-white max-w-full"></canvas>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mb-4 gap-2 w-full">
+                            <button id="prevPage2" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm">Anterior</button>
+                            <div id="pageInfo2" class="text-gray-700 text-sm">Página 0 de 0</div>
+                            <button id="nextPage2" class="bg-gray-300 px-2 py-1 sm:px-4 sm:py-2 rounded-md disabled:opacity-50 text-sm">Siguiente</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="results" class="bg-gray-50 p-3 sm:p-6 rounded-lg mt-8 hidden">
+                <h2 class="text-xl sm:text-2xl text-gray-800 mb-6 text-center">Resultados de la Comparación</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Resumen Documento 1 -->
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2" id="summaryTitle1">Documento 1</h3>
+                        <div class="space-y-2 text-sm sm:text-base">
+                            <p>Páginas: <span id="pageCount1" class="font-medium">0</span></p>
+                            <p>Costo Total: <span id="totalCost1" class="font-medium text-blue-600">S/0.00</span></p>
+                        </div>
+                        
+                        <!-- Distribución de costos por color -->
+                        <h4 class="text-sm font-medium text-gray-700 mt-4 mb-2">Costos por color:</h4>
+                        <div id="inkCostSummary1" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                    </div>
+                    
+                    <!-- Resumen Documento 2 -->
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2" id="summaryTitle2">Documento 2</h3>
+                        <div class="space-y-2 text-sm sm:text-base">
+                            <p>Páginas: <span id="pageCount2" class="font-medium">0</span></p>
+                            <p>Costo Total: <span id="totalCost2" class="font-medium text-green-600">S/0.00</span></p>
+                        </div>
+                        
+                        <!-- Distribución de costos por color -->
+                        <h4 class="text-sm font-medium text-gray-700 mt-4 mb-2">Costos por color:</h4>
+                        <div id="inkCostSummary2" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                    </div>
+                </div>
+                
+                <!-- Diferencia y ahorro -->
+                <div id="comparisonResult" class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Análisis Comparativo</h3>
+                    <div class="space-y-2">
+                        <p>Diferencia de costo: <span id="costDifference" class="font-medium">S/0.00</span></p>
+                        <p>Porcentaje de ahorro: <span id="savingsPercent" class="font-medium">0%</span></p>
+                        <p class="font-medium text-lg mt-4" id="recommendation"></p>
+                    </div>
+                </div>
+                
+                <div class="text-xs sm:text-sm text-gray-500 mt-6">
+                    * Cálculo basado en consumo de tóner donde 450g a 5% de cobertura rinde 60000 páginas y costo de S/130 por 400g de tóner
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir PDF.js -->
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script is:inline>
+        // Configurar PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        // Valores predeterminados en caso de que no haya configuración guardada
+        const DEFAULT_SETTINGS = {
+            tonerPrice: 130,
+            tonerWeight: 400,
+            tonerYield: 60000,
+            coveragePercent: 5,
+            tonerYieldWeight: 450
+        };
+        
+        // Calcular constantes a partir de la configuración
+        let TONER_COST_PER_GRAM;
+        let GRAMS_PER_PAGE_PER_20_PERCENT;
+        
+        // Área de referencia A4 en puntos (72 puntos por pulgada)
+        const A4_AREA_POINTS = (8.27 * 11.69) * (72 * 72); // A4 en pulgadas * puntos por pulgada al cuadrado
+        
+        // Estado de los documentos
+        const docState = {
+            doc1: {
+                pdfDoc: null,
+                pageNum: 1,
+                pageRendering: false,
+                pageNumPending: null,
+                canvas: document.getElementById('pdfCanvas1'),
+                ctx: null,
+                pageResults: [],
+                currentScale: 1.2,
+                totalInkCosts: {
+                    cyan: 0,
+                    magenta: 0,
+                    yellow: 0,
+                    black: 0
+                },
+                totalCost: 0
+            },
+            doc2: {
+                pdfDoc: null,
+                pageNum: 1,
+                pageRendering: false,
+                pageNumPending: null,
+                canvas: document.getElementById('pdfCanvas2'),
+                ctx: null,
+                pageResults: [],
+                currentScale: 1.2,
+                totalInkCosts: {
+                    cyan: 0,
+                    magenta: 0,
+                    yellow: 0,
+                    black: 0
+                },
+                totalCost: 0
+            }
+        };
+        
+        // Inicializar contextos de canvas
+        docState.doc1.ctx = docState.doc1.canvas.getContext('2d');
+        docState.doc2.ctx = docState.doc2.canvas.getContext('2d');
+        
+        // Cargar configuración desde localStorage
+        function loadSettings() {
+            let settings;
+            try {
+                const savedSettings = localStorage.getItem('taptappSettings');
+                settings = savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
+            } catch (e) {
+                console.error('Error al cargar la configuración:', e);
+                settings = DEFAULT_SETTINGS;
+            }
+            
+            // Calcular las constantes utilizadas en los cálculos
+            TONER_COST_PER_GRAM = settings.tonerPrice / settings.tonerWeight;
+            const gramsPerPageAtCoverage = settings.tonerYieldWeight / settings.tonerYield;
+            GRAMS_PER_PAGE_PER_20_PERCENT = gramsPerPageAtCoverage * (20 / settings.coveragePercent);
+            
+            // Actualizar texto explicativo
+            const explanationText = document.querySelector('.text-xs.sm\\:text-sm.text-gray-500');
+            if (explanationText) {
+                explanationText.textContent = `* Cálculo basado en consumo de tóner donde ${settings.tonerYieldWeight}g a ${settings.coveragePercent}% de cobertura rinde ${settings.tonerYield} páginas y costo de S/${settings.tonerPrice} por ${settings.tonerWeight}g de tóner`;
+            }
+        }
+        
+        // Cargar configuración al inicio
+        loadSettings();
+
+        // Función para calcular escala adecuada para el viewport
+        function calculateScaleForViewport(containerID) {
+            const containerWidth = document.getElementById(containerID).clientWidth - 20;
+            const scale = containerWidth < 400 ? 0.8 : 1.0;
+            return Math.min(scale, containerWidth / 500);
+        }
+        
+        // Funciones de renderizado y navegación de páginas
+        function renderPage(docKey) {
+            const state = docState[docKey];
+            state.pageRendering = true;
+            
+            state.pdfDoc.getPage(state.pageNum).then(function(page) {
+                state.currentScale = calculateScaleForViewport(`pdfPreview${docKey.charAt(3)}`);
+                const viewport = page.getViewport({ scale: state.currentScale });
+                
+                // Ajustar dimensiones del canvas
+                state.canvas.height = viewport.height;
+                state.canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: state.ctx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext).promise.then(function() {
+                    state.pageRendering = false;
+                    
+                    if (state.pageNumPending !== null) {
+                        renderPage(docKey);
+                        state.pageNumPending = null;
+                    }
+                });
+                
+                document.getElementById(`pageInfo${docKey.charAt(3)}`).textContent = 
+                    `Página ${state.pageNum} de ${state.pdfDoc.numPages}`;
+                
+                // Actualizar botones
+                document.getElementById(`prevPage${docKey.charAt(3)}`).disabled = state.pageNum <= 1;
+                document.getElementById(`nextPage${docKey.charAt(3)}`).disabled = state.pageNum >= state.pdfDoc.numPages;
+            });
+        }
+        
+        function queueRenderPage(docKey, num) {
+            const state = docState[docKey];
+            if (state.pageRendering) {
+                state.pageNumPending = num;
+            } else {
+                renderPage(docKey);
+            }
+        }
+        
+        // Configurar event listeners para navegación
+        ['1', '2'].forEach(docNum => {
+            document.getElementById(`prevPage${docNum}`).addEventListener('click', function() {
+                const docKey = `doc${docNum}`;
+                if (docState[docKey].pageNum <= 1) return;
+                docState[docKey].pageNum--;
+                queueRenderPage(docKey, docState[docKey].pageNum);
+            });
+
+            document.getElementById(`nextPage${docNum}`).addEventListener('click', function() {
+                const docKey = `doc${docNum}`;
+                if (docState[docKey].pageNum >= docState[docKey].pdfDoc.numPages) return;
+                docState[docKey].pageNum++;
+                queueRenderPage(docKey, docState[docKey].pageNum);
+            });
+        });
+
+        // Procesamiento de archivos subidos
+        ['1', '2'].forEach(docNum => {
+            const docKey = `doc${docNum}`;
+            
+            document.getElementById(`pdfInput${docNum}`).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Mostrar nombre del archivo
+                document.getElementById(`fileName${docNum}`).textContent = file.name;
+                document.getElementById(`summaryTitle${docNum}`).textContent = file.name;
+                
+                // Mostrar contenedor del PDF
+                document.getElementById(`pdfContainer${docNum}`).style.display = 'flex';
+                
+                // Reiniciar estado del documento
+                docState[docKey].pageNum = 1;
+                docState[docKey].pageResults = [];
+                docState[docKey].totalInkCosts = {
+                    cyan: 0,
+                    magenta: 0,
+                    yellow: 0,
+                    black: 0
+                };
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const typedarray = new Uint8Array(event.target.result);
+                    loadPdfDocument(docKey, typedarray);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        });
+
+        // Cargar y procesar documento PDF
+        function loadPdfDocument(docKey, typedarray) {
+            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                docState[docKey].pdfDoc = pdf;
+                
+                // Actualizar información de página
+                document.getElementById(`pageInfo${docKey.charAt(3)}`).textContent = 
+                    `Página ${docState[docKey].pageNum} de ${pdf.numPages}`;
+                document.getElementById(`pageCount${docKey.charAt(3)}`).textContent = pdf.numPages;
+                
+                // Analizar todas las páginas
+                analyzeAllPages(docKey).then(() => {
+                    // Mostrar la primera página
+                    renderPage(docKey);
+                    
+                    // Mostrar resultados
+                    updateDocumentSummary(docKey);
+                    
+                    // Si ambos documentos están cargados, mostrar comparación
+                    if (docState.doc1.pdfDoc && docState.doc2.pdfDoc) {
+                        document.getElementById('results').style.display = 'block';
+                        updateComparisonResults();
+                    }
+                });
+            }).catch(function(error) {
+                console.error(`Error loading PDF for ${docKey}:`, error);
+                alert(`Error al cargar el PDF para ${docKey}. Por favor, intenta con otro archivo.`);
+            });
+        }
+
+        // Analizar todas las páginas de un documento
+        async function analyzeAllPages(docKey) {
+            const state = docState[docKey];
+            let totalDocCost = 0;
+            
+            for (let i = 1; i <= state.pdfDoc.numPages; i++) {
+                await state.pdfDoc.getPage(i).then(function(page) {
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    
+                    // Calcular el área real de la página en puntos
+                    const pageArea = viewport.width * viewport.height;
+                    // Factor de escala basado en el área relativa a un A4
+                    const areaScaleFactor = pageArea / A4_AREA_POINTS;
+                    
+                    tempCanvas.width = viewport.width;
+                    tempCanvas.height = viewport.height;
+                    
+                    return page.render({
+                        canvasContext: tempCtx,
+                        viewport: viewport
+                    }).promise.then(function() {
+                        const coverage = calculateCoverage(tempCanvas);
+                        const cost = calculateCost(coverage, areaScaleFactor);
+                        
+                        // Acumular costos de tinta
+                        state.totalInkCosts.cyan += cost.cyan;
+                        state.totalInkCosts.magenta += cost.magenta;
+                        state.totalInkCosts.yellow += cost.yellow;
+                        state.totalInkCosts.black += cost.black;
+                        
+                        totalDocCost += cost.total;
+                        
+                        state.pageResults.push({
+                            pageNum: i,
+                            coverage,
+                            cost,
+                            dimensions: {
+                                width: viewport.width,
+                                height: viewport.height,
+                                area: pageArea,
+                                scaleFactor: areaScaleFactor
+                            }
+                        });
+                    });
+                });
+            }
+            
+            state.totalCost = totalDocCost;
+        }
+
+        // Calcular cobertura CMYK desde el canvas
+        function calculateCoverage(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            let cTotal = 0, mTotal = 0, yTotal = 0, kTotal = 0;
+            const pixelCount = canvas.width * canvas.height;
+
+            for(let i = 0; i < data.length; i += 4) {
+                const r = data[i]/255;
+                const g = data[i+1]/255;
+                const b = data[i+2]/255;
+                const a = data[i+3]/255;
+
+                // Si el píxel es transparente, no lo contamos
+                if (a < 0.1) continue;
+
+                // Conversión RGB a CMYK
+                const k = 1 - Math.max(r, g, b);
+                const c = k === 1 ? 0 : (1 - r - k)/(1 - k);
+                const m = k === 1 ? 0 : (1 - g - k)/(1 - k);
+                const y = k === 1 ? 0 : (1 - b - k)/(1 - k);
+
+                cTotal += c;
+                mTotal += m;
+                yTotal += y;
+                kTotal += k;
+            }
+
+            return {
+                cyan: (cTotal/pixelCount) * 100,
+                magenta: (mTotal/pixelCount) * 100,
+                yellow: (yTotal/pixelCount) * 100,
+                black: (kTotal/pixelCount) * 100
+            };
+        }
+
+        // Calcular costo basado en cobertura y factor de escala
+        function calculateCost(coverage, areaScaleFactor = 1) {
+            const costPerColor = (percentage) => 
+                (percentage/20) * GRAMS_PER_PAGE_PER_20_PERCENT * TONER_COST_PER_GRAM * areaScaleFactor;
+            
+            return {
+                cyan: costPerColor(coverage.cyan),
+                magenta: costPerColor(coverage.magenta),
+                yellow: costPerColor(coverage.yellow),
+                black: costPerColor(coverage.black),
+                total: Object.values(coverage).reduce((acc, val) => acc + costPerColor(val), 0)
+            };
+        }
+
+        // Actualizar resumen del documento
+        function updateDocumentSummary(docKey) {
+            const state = docState[docKey];
+            const docNum = docKey.charAt(3);
+            
+            // Actualizar costo total
+            document.getElementById(`totalCost${docNum}`).textContent = `S/${state.totalCost.toFixed(3)}`;
+            
+            // Mostrar costos por tinta
+            const summaryContainer = document.getElementById(`inkCostSummary${docNum}`);
+            summaryContainer.innerHTML = `
+                <div class="bg-cyan-500 text-white p-2 rounded-md text-center font-bold text-xs">
+                    <div>Cian</div>
+                    <div>S/${state.totalInkCosts.cyan.toFixed(2)}</div>
+                </div>
+                <div class="bg-fuchsia-500 text-white p-2 rounded-md text-center font-bold text-xs">
+                    <div>Magenta</div>
+                    <div>S/${state.totalInkCosts.magenta.toFixed(2)}</div>
+                </div>
+                <div class="bg-yellow-400 text-white p-2 rounded-md text-center font-bold text-xs">
+                    <div>Amarillo</div>
+                    <div>S/${state.totalInkCosts.yellow.toFixed(2)}</div>
+                </div>
+                <div class="bg-black text-white p-2 rounded-md text-center font-bold text-xs">
+                    <div>Negro</div>
+                    <div>S/${state.totalInkCosts.black.toFixed(2)}</div>
+                </div>
+            `;
+        }
+
+        // Actualizar resultados de comparación
+        function updateComparisonResults() {
+            const costDifference = Math.abs(docState.doc1.totalCost - docState.doc2.totalCost);
+            const higherCost = Math.max(docState.doc1.totalCost, docState.doc2.totalCost);
+            const lowerCost = Math.min(docState.doc1.totalCost, docState.doc2.totalCost);
+            const savingsPercent = higherCost > 0 ? ((higherCost - lowerCost) / higherCost) * 100 : 0;
+            
+            document.getElementById('costDifference').textContent = `S/${costDifference.toFixed(3)}`;
+            document.getElementById('savingsPercent').textContent = `${savingsPercent.toFixed(1)}%`;
+            
+            let recommendation = '';
+            if (costDifference < 0.001) {
+                recommendation = 'Ambos documentos tienen costos muy similares.';
+            } else if (docState.doc1.totalCost < docState.doc2.totalCost) {
+                recommendation = 'El Documento 1 es más económico para imprimir.';
+            } else {
+                recommendation = 'El Documento 2 es más económico para imprimir.';
+            }
+            
+            document.getElementById('recommendation').textContent = recommendation;
+        }
+
+        // Escuchar cambios de tamaño de la ventana para ajustar los canvas
+        window.addEventListener('resize', function() {
+            if (docState.doc1.pdfDoc) renderPage('doc1');
+            if (docState.doc2.pdfDoc) renderPage('doc2');
+        });
+    </script>
+</body>
+</html> 

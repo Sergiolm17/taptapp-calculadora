@@ -50,6 +50,20 @@ Esta aplicación web permite calcular los costos de impresión basados en el con
 - Guarda la configuración en el almacenamiento local del navegador
 - La configuración guardada se aplica automáticamente a todas las calculadoras
 
+### 5. Comparador de Documentos (/comparador)
+
+- Permite subir y analizar dos versiones de un documento PDF
+- Muestra los documentos lado a lado para facilitar la comparación visual
+- Proporciona navegación independiente por las páginas de cada documento
+- Calcula y compara:
+  - Número total de páginas
+  - Costo total de impresión para cada documento
+  - Distribución de costos por color (Cian, Magenta, Amarillo, Negro)
+- Ofrece un análisis comparativo con:
+  - Diferencia absoluta de costo
+  - Porcentaje de ahorro entre versiones
+  - Recomendación clara sobre qué versión es más económica de imprimir
+
 ## Cálculos y Fórmulas
 
 ### Costos Base
@@ -96,24 +110,13 @@ Esta aplicación web permite calcular los costos de impresión basados en el con
    - Calcularía cuándo reemplazar componentes como tambores y fusor
    - Proyección de costos de mantenimiento a largo plazo
 
-3. **Comparador de Documentos**
-
-   - Permitiría comparar dos versiones de un documento para evaluar diferencias en costos
-   - Útil para optimizar documentos antes de imprimirlos
-
-4. **Optimizador de Impresión**
+3. **Optimizador de Impresión**
 
    - Analizaría documentos y sugeriría cambios para reducir el consumo de tóner
    - Recomendaría configuraciones de impresión más eficientes
    - Opción para reformatear automáticamente documentos para menor consumo
 
-5. **Panel de Control Administrativo**
-
-   - Seguimiento del historial de impresiones y costos acumulados
-   - Estadísticas de uso por departamento o usuario
-   - Establecimiento de cuotas y presupuestos de impresión
-
-6. **Calculadora de Impacto Ambiental**
+4. **Calculadora de Impacto Ambiental**
    - Estimaría la huella de carbono de las impresiones
    - Mostraría el ahorro en recursos al optimizar documentos
    - Recomendaciones para impresión más sostenible

@@ -39,6 +39,15 @@
         </li>
         <li>
             <a 
+                href="/comparador" 
+                class={`text-white px-2 sm:px-4 py-2 rounded-md transition-colors hover:bg-slate-700 
+                ${Astro.url.pathname === "/comparador" ? "bg-blue-500" : ""}`}
+            >
+                Comparador
+            </a>
+        </li>
+        <li>
+            <a 
                 href="/admin" 
                 class={`text-white px-2 sm:px-4 py-2 rounded-md transition-colors hover:bg-slate-700 
                 ${Astro.url.pathname === "/admin" ? "bg-blue-500" : ""}`}
@@ -85,6 +94,15 @@
                         ${Astro.url.pathname === "/pdf" ? "bg-blue-500" : ""}`}
                     >
                         Calculadora PDF
+                    </a>
+                </li>
+                <li>
+                    <a 
+                        href="/comparador" 
+                        class={`text-white px-4 py-2 rounded-md transition-colors hover:bg-slate-700 block
+                        ${Astro.url.pathname === "/comparador" ? "bg-blue-500" : ""}`}
+                    >
+                        Comparador
                     </a>
                 </li>
                 <li>
